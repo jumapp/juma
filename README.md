@@ -1,50 +1,55 @@
-# Welcome to your Expo app 👋
+# Doonjuma
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A cross-platform mobile/web app built with **Expo SDK 54** (React Native) and a **FastAPI** backend.
 
-## Get started
+## Project Structure
 
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+doonjuma/
+├── frontend/     # Expo React Native app (iOS / Android / Web / PWA)
+├── backend/      # FastAPI Python backend
+└── docs/         # Project documentation
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Quick Start
 
-## Learn more
+### Frontend
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+cd frontend
+npm install
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Backend
 
-## Join the community
+```bash
+cd backend
+python -m venv .venv
+.venv\Scripts\activate      # Windows
+# source .venv/bin/activate  # macOS/Linux
 
-Join our community of developers creating universal apps.
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### From Root
+
+```bash
+npm run frontend        # Start Expo dev server
+npm run backend         # Start FastAPI dev server
+```
+
+## Documentation
+
+See the [docs](docs/) directory for architecture overview and API reference.
+
+## Tech Stack
+
+| Layer    | Technology                       |
+|----------|----------------------------------|
+| Mobile   | React Native (Expo SDK 54)       |
+| Web      | React Native Web / PWA           |
+| Backend  | FastAPI (Python)                 |
+| Routing  | Expo Router (file-based)         |
+| Database | TBD                              |
