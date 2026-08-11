@@ -18,5 +18,6 @@ doonjuma/
 ## Quick Links
 
 - [Project Idea](idea.md)
+- [User Journey](user-journey.md)
 - [Architecture](architecture.md)
 - [API Reference](api.md)
