@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  guard:
+    name: Verify tag is on master
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check tag ancestry against master
+        run: |
+          git fetch origin master --quiet
+          if git merge-base --is-ancestor "${{ github.sha }}" origin/master; then
+            echo "Tag ${{ github.ref_name }} points to a commit on master."
+          else
+            echo "::error::Tag ${{ github.ref_name }} does not point to a commit on master."
+            exit 1
+          fi
+
+  android:
+    name: Android build & deploy
+    needs: guard
+    uses: ./.github/workflows/deploy-android.yml
+    with:
+      profile: production
+      submit: false
+    secrets: inherit
+
+  ios:
+    name: iOS build & deploy
+    needs: guard
+    uses: ./.github/workflows/deploy-ios.yml
+    with:
+      profile: production
+      skip_ios: true
+      submit: false
+    secrets: inherit
+
+  pwa:
+    name: PWA build & deploy
+    needs: guard
+    uses: ./.github/workflows/deploy-pwa.yml
+    secrets: inherit

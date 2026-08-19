@@ -1,0 +1,56 @@
+name: Deploy PWA
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_message:
+        description: 'Optional deploy message shown in Netlify.'
+        type: string
+        required: false
+  workflow_call:
+    inputs:
+      deploy_message:
+        description: 'Optional deploy message shown in Netlify.'
+        required: false
+        type: string
+    secrets:
+      NETLIFY_AUTH_TOKEN:
+        description: 'Netlify personal access token.'
+        required: true
+      NETLIFY_SITE_ID:
+        description: 'Netlify site API id.'
+        required: true
+
+concurrency:
+  group: pwa-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  web-build:
+    name: Build Expo web export
+    uses: ./.github/workflows/reusable-web-build.yml
+
+  deploy-netlify:
+    name: Deploy PWA to Netlify
+    needs: web-build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: web-dist
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: web-dist
+          production-deploy: true
+          deploy-message: 'Deploy ${{ github.ref_name }} @ ${{ github.sha }} ${{ inputs.deploy_message }}'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

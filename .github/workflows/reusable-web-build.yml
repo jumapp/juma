@@ -1,0 +1,44 @@
+name: Reusable - Web Build
+
+on:
+  workflow_call:
+    inputs:
+      working_directory:
+        description: 'Directory containing the Expo app (package.json).'
+        required: false
+        type: string
+        default: 'frontend'
+    secrets:
+      # No secrets required for the web build itself.
+      {}
+
+jobs:
+  web-build:
+    name: Build Expo web export
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working_directory }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: ${{ inputs.working_directory }}/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Export web build
+        run: npm run build:web
+
+      - name: Upload web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: ${{ inputs.working_directory }}/dist
+          if-no-files-found: error

@@ -1,0 +1,46 @@
+name: Deploy Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'EAS build profile from eas.json.'
+        type: choice
+        default: 'production'
+        options:
+          - 'development'
+          - 'preview'
+          - 'production'
+      submit:
+        description: 'Submit the build to the Play Store after it completes (requires GOOGLE_SERVICE_ACCOUNT_JSON).'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      profile:
+        description: 'EAS build profile from eas.json.'
+        required: false
+        type: string
+        default: 'production'
+      submit:
+        description: 'Submit the build to the Play Store after it completes.'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build-android:
+    name: Build Android via EAS
+    uses: ./.github/workflows/reusable-eas-build.yml
+    with:
+      platform: android
+      profile: ${{ inputs.profile }}
+      submit: ${{ inputs.submit == true || inputs.submit == 'true' }}
+    secrets: inherit

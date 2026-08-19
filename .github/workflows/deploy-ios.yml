@@ -1,0 +1,68 @@
+name: Deploy iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_ios:
+        description: 'Skip the iOS build (keep true until Apple credentials are configured).'
+        type: boolean
+        default: true
+      profile:
+        description: 'EAS build profile from eas.json.'
+        type: choice
+        default: 'production'
+        options:
+          - 'development'
+          - 'preview'
+          - 'production'
+      submit:
+        description: 'Submit the build to the App Store after it completes (requires App Store Connect API key).'
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      skip_ios:
+        description: 'Skip the iOS build.'
+        required: false
+        type: boolean
+        default: true
+      profile:
+        description: 'EAS build profile from eas.json.'
+        required: false
+        type: string
+        default: 'production'
+      submit:
+        description: 'Submit the build to the App Store after it completes.'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  check-skip:
+    name: Check iOS skip flag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log skip status
+        run: |
+          if [ "${{ inputs.skip_ios }}" = "true" ]; then
+            echo "skip_ios=true - iOS build is skipped. Re-run with skip_ios=false to build."
+          else
+            echo "skip_ios=false - iOS build will run."
+          fi
+
+  build-ios:
+    name: Build iOS via EAS
+    if: inputs.skip_ios != 'true' && inputs.skip_ios != true
+    uses: ./.github/workflows/reusable-eas-build.yml
+    with:
+      platform: ios
+      profile: ${{ inputs.profile }}
+      submit: ${{ inputs.submit == true || inputs.submit == 'true' }}
+    secrets: inherit
