@@ -21,3 +21,4 @@ jumapp/
 - [User Journey](user-journey.md)
 - [Architecture](architecture.md)
 - [API Reference](api.md)
+- [CI/CD](CICD.md)
