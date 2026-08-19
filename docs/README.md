@@ -1,15 +1,15 @@
-# Doonjuma Documentation
+# Jumapp Documentation
 
-Welcome to the Doonjuma project documentation.
+Welcome to the Jumapp project documentation.
 
 ## Project Concept
 
-DoonJuma (`DJ`) helps users find the nearest masjid to offer salat at any given time. See [idea.md](idea.md).
+Jumapp helps users find the nearest masjid to offer salat at any given time. See [idea.md](idea.md).
 
 ## Project Structure
 
 ```
-doonjuma/
+jumapp/
 ├── frontend/   # Expo React Native app (iOS / Android / Web / PWA)
 ├── backend/    # FastAPI backend
 └── docs/       # Project documentation

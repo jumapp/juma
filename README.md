@@ -1,11 +1,11 @@
-# Doonjuma
+# Jumapp
 
 A cross-platform mobile/web app built with **Expo SDK 54** (React Native) and a **FastAPI** backend.
 
 ## Project Structure
 
 ```
-doonjuma/
+jumapp/
 ├── frontend/     # Expo React Native app (iOS / Android / Web / PWA)
 ├── backend/      # FastAPI Python backend
 └── docs/         # Project documentation

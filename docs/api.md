@@ -2,7 +2,7 @@
 
 ## Base URL
 
-Production: `https://api.doonjuma.com`
+Production: `https://api.jumapp.com`
 
 Local development: `http://localhost:8000`
 
@@ -16,7 +16,7 @@ Root endpoint. Returns basic API information.
 
 ```json
 {
-  "name": "Doonjuma API",
+  "name": "Jumapp API",
   "version": "0.1.0",
   "docs": "/docs",
   "health": "/health"

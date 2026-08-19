@@ -1,1 +1,1 @@
-"""Doonjuma backend application package."""
+"""Jumapp backend application package."""

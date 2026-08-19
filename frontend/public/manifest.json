@@ -1,7 +1,7 @@
 {
-  "short_name": "Doonjuma",
-  "name": "Doonjuma",
-  "description": "Doonjuma - a cross-platform app that works offline",
+  "short_name": "Jumapp",
+  "name": "Jumapp",
+  "description": "Jumapp - a cross-platform app that works offline",
   "icons": [
     {
       "src": "/favicon.ico",

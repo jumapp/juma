@@ -1,8 +1,8 @@
 {
-  "name": "doonjuma",
+  "name": "jumapp",
   "version": "1.0.0",
   "private": true,
-  "description": "Doonjuma monorepo - Expo React Native frontend + FastAPI backend",
+  "description": "Jumapp monorepo - Expo React Native frontend + FastAPI backend",
   "scripts": {
     "frontend": "npm --prefix frontend start",
     "frontend:android": "npm --prefix frontend run android",

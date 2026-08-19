@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
  */
 const memoryCache = new Map<string, { data: unknown; timestamp: number }>();
 
-const CACHE_PREFIX = 'doonjuma-cache:';
+const CACHE_PREFIX = 'jumapp-cache:';
 
 function isWeb(): boolean {
   return Platform.OS === 'web' && typeof caches !== 'undefined';
@@ -16,7 +16,7 @@ function isWeb(): boolean {
 
 async function getWebCache(): Promise<Cache | null> {
   try {
-    return await caches.open('doonjuma-api-cache');
+    return await caches.open('jumapp-api-cache');
   } catch {
     return null;
   }

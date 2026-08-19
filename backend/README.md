@@ -1,6 +1,6 @@
-# Doonjuma Backend
+# Jumapp Backend
 
-FastAPI backend for the Doonjuma app.
+FastAPI backend for the Jumapp app.
 
 ## Setup
 

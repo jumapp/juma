@@ -18,7 +18,7 @@ export default function Root({ children }: PropsWithChildren) {
           content="width=device-width, initial-scale=1, viewport-fit=cover"
         />
         <meta name="theme-color" content="#0a7ea4" />
-        <meta name="description" content="Doonjuma - a cross-platform app that works offline" />
+        <meta name="description" content="Jumapp - a cross-platform app that works offline" />
 
         {/* PWA Manifest */}
         <link rel="manifest" href="/manifest.json" />
@@ -32,7 +32,7 @@ export default function Root({ children }: PropsWithChildren) {
         {/* iOS PWA meta tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Doonjuma" />
+        <meta name="apple-mobile-web-app-title" content="Jumapp" />
         <meta name="mobile-web-app-capable" content="yes" />
 
         {/* Service Worker Registration */}

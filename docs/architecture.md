@@ -2,7 +2,7 @@
 
 ## Overview
 
-Doonjuma is a monorepo containing a cross-platform mobile/web app and a FastAPI backend.
+Jumapp is a monorepo containing a cross-platform mobile/web app and a FastAPI backend.
 
 ## Components
 
@@ -28,7 +28,7 @@ Doonjuma is a monorepo containing a cross-platform mobile/web app and a FastAPI 
 ## Directory Layout
 
 ```
-doonjuma/
+jumapp/
 ├── frontend/           # Expo React Native app
 │   ├── app/            # Expo Router screens
 │   ├── assets/         # Images, icons, fonts

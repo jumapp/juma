@@ -1,6 +1,6 @@
-/* Doonjuma Service Worker - PWA Offline Support */
+/* Jumapp Service Worker - PWA Offline Support */
 
-const CACHE_VERSION = 'doonjuma-v1';
+const CACHE_VERSION = 'jumapp-v1';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-app-shell`;
 const STATIC_ASSETS_CACHE = `${CACHE_VERSION}-static-assets`;
 const API_CACHE = `${CACHE_VERSION}-api`;

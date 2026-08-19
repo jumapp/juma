@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     """Application settings loaded from environment variables / .env file."""
 
-    app_name: str = "Doonjuma API"
+    app_name: str = "Jumapp API"
     app_version: str = "0.1.0"
     debug: bool = False
 
