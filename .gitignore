@@ -74,3 +74,9 @@ ENV/
 .env
 .env.*
 !.env.example
+.idea/.gitignore
+.idea/doonjuma.iml
+.idea/markdown.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
