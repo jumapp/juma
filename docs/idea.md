@@ -11,6 +11,42 @@ Jumapp, is a project which will help users to see the nearest masjid to his loca
 *   Get user's current location.
 *   Based on his current location or saved location or last known location (in this order)
 *   Get the list of masjids in the vicinity
+    * Masjid details 
+    ``` text
+        Masjid name 
+        Indian standard address details including pre poplated state (Include only Uttarakhand as of now, we will use others later)
+        Calculated latitude and lonigitude
+        
+        Transportation
+            Accessible by public transport
+            Highway masjid
+            On Road masjid
+        
+        Map ID, if applicable
+        Photos
+        
+        Salats
+            Five time salats 
+            Juma time 
+            Women's salat place
+            Library
+        Programs 
+            Maktab 
+            Elders maktab
+            tafseer ( day/time) multiple time schedule is possible in a day/week
+            hadith lesson (day/time) multiple time schedule is possible in a day/week
+            Other courses/programs
+        Open/Close times
+        Amenities 
+            Wudu stations 
+            Urinals
+            Toilets
+        Parking
+            Masjid parking
+            Street Parking
+        Any other items?
+    ```
+
 *   Display the masjids on the app in a map view
 *   Alternatively, User must be able to see the masjid list
 *   User must be able to search, sort, and filter the masjids on map and list
