@@ -1,6 +1,6 @@
 # DoonJuma
 
-DoonJuma or `DJ`, is a project whcih will help users to see the nearest masjid to his location and salat times of the masjid. In addition to it he will be able to see all masjids in the vicinity and their respective salat times as well.
+Jumapp, is a project which will help users to see the nearest masjid to his location and salat times of the masjid. In addition to it he will be able to see all masjids in the vicinity and their respective salat times as well.
 
 ---
 
@@ -15,12 +15,13 @@ DoonJuma or `DJ`, is a project whcih will help users to see the nearest masjid t
 *   Alternatively, User must be able to see the masjid list
 *   User must be able to search, sort, and filter the masjids on map and list
 *   Privilidged user must be able to add the masjid and modify the namaz timings
+    * Two priviliged users, superadmin and masjid admin
 
 ### Date and Location
 
-*   User must be able to see the location detail on dashboard like 'Doiwala\`
+*   User must be able to see the location detail on dashboard like `Doiwala`
 *   User must be able to see the date
-*   User must be able to see the moonsighting comitte date from trusted source
+*   User must be able to see the moonsighting commitee date from trusted source
 
 ### Salat timing calculations
 
