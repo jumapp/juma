@@ -14,8 +14,15 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.config import settings
 
 
-# Security scheme for token authentication
-security = HTTPBearer()
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
+
+from app.config import settings
+
+# Security schemes for OpenAPI documentation
+security_bearer = HTTPBearer(auto_error=False)
+security_super_admin = APIKeyHeader(name="X-Super-Admin-Token", auto_error=False)
+security_masjid_editor = APIKeyHeader(name="X-Masjid-Editor-Token", auto_error=False)
+security_dev_user = APIKeyHeader(name="X-Dev-User-Token", auto_error=False)
 
 
 class User:
@@ -58,7 +65,8 @@ class AuthService:
 
     def get_dev_user_from_request(self, request: Request) -> Optional[User]:
         """Get dev user from request headers for dev mode."""
-        token = request.headers.get("X-Dev-User-Token")
+        # 1. Check Super Admin Token
+        token = request.headers.get("X-Super-Admin-Token") or request.headers.get("X-Dev-User-Token")
         if token and token == self.super_admin_token:
             user = User(
                 id=self.super_admin_user_id,
@@ -70,6 +78,21 @@ class AuthService:
             user.permissions = self._get_permissions_for_role("super_admin")
             return user
 
+        # 2. Check Masjid Editor Token
+        editor_masjid_id = request.headers.get("X-Masjid-Editor-Token")
+        if editor_masjid_id:
+            user = User(
+                id=str(uuid.uuid4()),
+                email=f"editor-{editor_masjid_id[:8]}@jumapp.com",
+                access_level="editor",
+                role="masjid_editor",
+                name="Masjid Editor",
+                masjid_id=editor_masjid_id,
+            )
+            user.permissions = self._get_permissions_for_role("masjid_editor")
+            return user
+
+        # 3. Check detailed dev user headers
         user_id = request.headers.get("X-Dev-User-Id")
         email = request.headers.get("X-Dev-User-Email")
         role = request.headers.get("X-Dev-User-Role")
