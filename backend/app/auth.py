@@ -22,6 +22,8 @@ from app.config import settings
 security_bearer = HTTPBearer(auto_error=False)
 security_super_admin = APIKeyHeader(name="X-Super-Admin-Token", auto_error=False)
 security_masjid_editor = APIKeyHeader(name="X-Masjid-Editor-Token", auto_error=False)
+security_salat_editor = APIKeyHeader(name="X-Salat-Editor-Token", auto_error=False)
+security_viewer = APIKeyHeader(name="X-Viewer-Token", auto_error=False)
 security_dev_user = APIKeyHeader(name="X-Dev-User-Token", auto_error=False)
 
 
@@ -47,9 +49,23 @@ class User:
 
     def has_permission(self, permission: str, masjid_id: Optional[str] = None) -> bool:
         """Check if the user has a specific permission."""
-        if masjid_id and self.masjid_id != masjid_id:
+        # 1. Super Admin bypasses masjid_id restrictions for granted permissions
+        if self.role == "super_admin":
+            return self.permissions.get(permission, False)
+
+        # 2. Check basic permission flag
+        if not self.permissions.get(permission, False):
             return False
-        return self.permissions.get(permission, False)
+
+        # 3. Read permissions are globally accessible across masjids if the user has read permission
+        if permission.endswith(":read"):
+            return True
+
+        # 4. Scoped write/update/delete check if a specific masjid_id is specified
+        if masjid_id and self.masjid_id:
+            return str(self.masjid_id) == str(masjid_id)
+
+        return True
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, email={self.email}, role={self.role})>"
@@ -92,7 +108,34 @@ class AuthService:
             user.permissions = self._get_permissions_for_role("masjid_editor")
             return user
 
-        # 3. Check detailed dev user headers
+        # 3. Check Salat Editor Token
+        salat_editor_token = request.headers.get("X-Salat-Editor-Token")
+        if salat_editor_token:
+            user = User(
+                id=str(uuid.uuid4()),
+                email="salat-editor@jumapp.com",
+                access_level="editor",
+                role="salat_editor",
+                name="Salat Editor",
+                masjid_id=request.headers.get("X-Dev-User-Masjid-Id"),
+            )
+            user.permissions = self._get_permissions_for_role("salat_editor")
+            return user
+
+        # 4. Check Viewer Token
+        viewer_token = request.headers.get("X-Viewer-Token")
+        if viewer_token:
+            user = User(
+                id=str(uuid.uuid4()),
+                email="viewer@jumapp.com",
+                access_level="viewer",
+                role="viewer",
+                name="Viewer",
+            )
+            user.permissions = self._get_permissions_for_role("viewer")
+            return user
+
+        # 5. Check detailed dev user headers
         user_id = request.headers.get("X-Dev-User-Id")
         email = request.headers.get("X-Dev-User-Email")
         role = request.headers.get("X-Dev-User-Role")
@@ -116,7 +159,89 @@ class AuthService:
 
     def _get_permissions_for_role(self, role: str) -> Dict[str, bool]:
         """Get permissions for a specific role."""
-        base_permissions = {
+        if role == "super_admin":
+            return {
+                "masjid:read": True,
+                "masjid:create": True,
+                "masjid:update": True,
+                "masjid:delete": True,
+                "salat:read": True,
+                "salat:create": True,
+                "salat:update": True,
+                "salat:delete": True,
+                "program:read": True,
+                "program:create": True,
+                "program:update": True,
+                "program:delete": True,
+                "person:read": True,
+                "person:create": True,
+                "person:update": True,
+                "person:delete": True,
+                "photo:read": True,
+                "photo:create": True,
+                "photo:delete": True,
+                "sync:read": True,
+                "sync:write": True,
+                "admin:read": True,
+                "admin:approve": True,
+            }
+
+        if role == "masjid_editor":
+            return {
+                "masjid:read": True,
+                "masjid:create": True,
+                "masjid:update": True,
+                "masjid:delete": True,
+                "salat:read": True,
+                "salat:create": True,
+                "salat:update": True,
+                "salat:delete": True,
+                "program:read": True,
+                "program:create": True,
+                "program:update": True,
+                "program:delete": True,
+                "person:read": True,
+                "person:create": True,
+                "person:update": True,
+                "person:delete": True,
+                "photo:read": True,
+                "photo:create": True,
+                "photo:delete": True,
+                "sync:read": True,
+                "sync:write": True,
+                "admin:read": False,
+                "admin:approve": False,
+            }
+
+        if role == "salat_editor":
+            return {
+                "masjid:read": True,
+                "masjid:create": False,
+                "masjid:update": False,
+                "masjid:delete": False,
+                "salat:read": True,
+                "salat:create": False,
+                "salat:update": True,
+                "salat:delete": False,
+                "program:read": True,
+                "program:create": False,
+                "program:update": False,
+                "program:delete": False,
+                "person:read": True,
+                "person:create": False,
+                "person:update": False,
+                "person:delete": False,
+                "photo:read": True,
+                "photo:create": False,
+                "photo:delete": False,
+                "sync:read": True,
+                "sync:write": False,
+                "admin:read": False,
+                "admin:approve": False,
+            }
+
+        # Default role: Viewer
+        return {
             "masjid:read": True,
             "masjid:create": False,
             "masjid:update": False,
@@ -141,26 +266,6 @@ class AuthService:
             "admin:read": False,
             "admin:approve": False,
         }
-
-        if role in ["super_admin", "masjid_editor", "salat_editor"]:
-            base_permissions.update({
-                "masjid:read": True,
-                "masjid:create": role == "masjid_editor",
-                "masjid:update": role == "masjid_editor",
-                "masjid:delete": role == "masjid_editor",
-                "salat:read": True,
-                "salat:create": role in ["masjid_editor", "salat_editor"],
-                "salat:update": role in ["masjid_editor", "salat_editor"],
-                "salat:delete": role == "masjid_editor",
-            })
-
-        if role == "super_admin":
-            base_permissions.update({
-                "admin:read": True,
-                "admin:approve": True,
-            })
-
-        return base_permissions
 
     async def get_current_user(
         self,

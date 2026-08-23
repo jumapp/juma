@@ -33,6 +33,13 @@ class AccessLevel(str, Enum):
     VIEWER = "viewer"
 
 
+class UserRole(str, Enum):
+    SUPER_ADMIN = "super_admin"
+    MASJID_EDITOR = "masjid_editor"
+    SALAT_EDITOR = "salat_editor"
+    VIEWER = "viewer"
+
+
 class PersonRole(str, Enum):
     IMAM = "imam"
     MUZZIN = "muazzin"
