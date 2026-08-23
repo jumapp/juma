@@ -5,8 +5,7 @@ In production, this would be replaced with a proper identity provider integratio
 """
 
 import uuid
-from datetime import datetime, timedelta
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

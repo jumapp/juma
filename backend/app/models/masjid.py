@@ -1,6 +1,5 @@
 """Masjid aggregate root model."""
 
-import uuid
 from datetime import time
 from typing import Any
 
