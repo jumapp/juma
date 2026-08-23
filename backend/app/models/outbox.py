@@ -4,7 +4,6 @@ This module implements the outbox pattern for audit events, ensuring that
 business changes and audit events are written in the same transaction.
 """
 
-import asyncio
 import logging
 import uuid
 from datetime import datetime

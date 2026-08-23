@@ -4,11 +4,10 @@ This service manages photo uploads to GCS or local storage, including validation
 resizing, and metadata management.
 """
 
-import os
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import IO, Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional
 
 from fastapi import UploadFile
 from fastapi.exceptions import HTTPException
@@ -100,7 +99,6 @@ class PhotoStorageService:
         """Upload file to Google Cloud Storage."""
         # This would require google-cloud-storage library
         # For now, just log the operation
-        pass
 
     async def cleanup_orphaned_files(self) -> int:
         """Clean up orphaned files in storage."""

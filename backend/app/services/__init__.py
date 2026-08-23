@@ -8,7 +8,6 @@ authorization, and domain rules.
 import uuid
 from datetime import datetime, time
 from typing import Any, Dict, List, Optional
-from decimal import Decimal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
