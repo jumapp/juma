@@ -48,6 +48,12 @@ async def list_masjids(
 ) -> List[dict]:
     """List masjids with optional filters."""
     try:
+        if not current_user.has_permission("masjid:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view masjids"
+            )
+
         masjid_service = get_masjid_service(request.state.db)
         masjids = await masjid_service.list_masjids(
             lat=lat,
@@ -161,6 +167,12 @@ async def get_masjid(
 ) -> dict:
     """Get a masjid by ID."""
     try:
+        if not current_user.has_permission("masjid:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view masjids"
+            )
+
         masjid_service = get_masjid_service(current_user.db)
         masjid = await masjid_service.get_masjid(masjid_id, include_related=True)
         
@@ -418,6 +430,12 @@ async def list_schedules(
 ) -> List[dict]:
     """List salat schedules."""
     try:
+        if not current_user.has_permission("salat:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view salat schedules"
+            )
+
         salat_service = get_salat_service(request.state.db)
         
         if masjid_id:
@@ -441,6 +459,8 @@ async def list_schedules(
             }
             for schedule in schedules
         ]
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -455,6 +475,12 @@ async def get_schedule(
 ) -> dict:
     """Get a salat schedule by ID."""
     try:
+        if not current_user.has_permission("salat:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view salat schedules"
+            )
+
         salat_service = get_salat_service(current_user.db)
         schedule = await salat_service.get_schedule(schedule_id)
         
@@ -493,10 +519,10 @@ async def create_schedule(
     """Create a new salat schedule."""
     try:
         # Check permission
-        if not current_user.has_permission("salat:create"):
+        if not current_user.has_permission("salat:create", str(data.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to create salat schedules"
+                detail="You don't have permission to create salat schedules for this masjid"
             )
         
         schedule_dict = data.model_dump()
@@ -540,27 +566,28 @@ async def update_schedule(
 ) -> dict:
     """Update an existing salat schedule."""
     try:
-        # Check permission
-        if not current_user.has_permission("salat:update"):
+        salat_service = get_salat_service(request.state.db)
+        existing_schedule = await salat_service.get_schedule(schedule_id)
+        if not existing_schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Salat schedule with ID {schedule_id} not found"
+            )
+
+        # Check permission for updating salat times
+        if not current_user.has_permission("salat:update", str(existing_schedule.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to update salat schedules"
+                detail="You don't have permission to update salat schedules for this masjid"
             )
         
         update_dict = data.model_dump(exclude_unset=True)
-        salat_service = get_salat_service(request.state.db)
         schedule = await salat_service.update_schedule(
             schedule_id=schedule_id,
             data=update_dict,
             user_id=current_user.id,
             request_id=x_request_id or request.headers.get("X-Request-ID")
         )
-        
-        if not schedule:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Salat schedule with ID {schedule_id} not found"
-            )
         
         return {
             "id": str(schedule.id),
@@ -589,14 +616,21 @@ async def delete_schedule(
 ) -> dict:
     """Delete a salat schedule."""
     try:
+        salat_service = get_salat_service(request.state.db)
+        existing_schedule = await salat_service.get_schedule(schedule_id)
+        if not existing_schedule:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Salat schedule with ID {schedule_id} not found"
+            )
+
         # Check permission
-        if not current_user.has_permission("salat:delete"):
+        if not current_user.has_permission("salat:delete", str(existing_schedule.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to delete salat schedules"
+                detail="You don't have permission to delete salat schedules for this masjid"
             )
         
-        salat_service = get_salat_service(request.state.db)
         success = await salat_service.delete_schedule(
             schedule_id=schedule_id,
             user_id=current_user.id,
@@ -617,6 +651,11 @@ async def delete_schedule(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
 
 
 # Programs Router
@@ -632,6 +671,12 @@ async def list_programs(
 ) -> List[dict]:
     """List programs."""
     try:
+        if not current_user.has_permission("program:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view programs"
+            )
+
         program_service = get_program_service(request.state.db)
         
         if masjid_id:
@@ -655,6 +700,8 @@ async def list_programs(
             }
             for program in programs
         ]
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -669,6 +716,12 @@ async def get_program(
 ) -> dict:
     """Get a program by ID."""
     try:
+        if not current_user.has_permission("program:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view programs"
+            )
+
         program_service = get_program_service(current_user.db)
         program = await program_service.get_program(program_id)
         
@@ -708,10 +761,10 @@ async def create_program(
     """Create a new program."""
     try:
         # Check permission
-        if not current_user.has_permission("program:create"):
+        if not current_user.has_permission("program:create", str(data.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to create programs"
+                detail="You don't have permission to create programs for this masjid"
             )
         
         program_dict = data.model_dump()
@@ -756,27 +809,28 @@ async def update_program(
 ) -> dict:
     """Update an existing program."""
     try:
+        program_service = get_program_service(request.state.db)
+        existing_program = await program_service.get_program(program_id)
+        if not existing_program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {program_id} not found"
+            )
+
         # Check permission
-        if not current_user.has_permission("program:update"):
+        if not current_user.has_permission("program:update", str(existing_program.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to update programs"
+                detail="You don't have permission to update programs for this masjid"
             )
         
         update_dict = data.model_dump(exclude_unset=True)
-        program_service = get_program_service(request.state.db)
         program = await program_service.update_program(
             program_id=program_id,
             data=update_dict,
             user_id=current_user.id,
             request_id=x_request_id or request.headers.get("X-Request-ID")
         )
-        
-        if not program:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Program with ID {program_id} not found"
-            )
         
         return {
             "id": str(program.id),
@@ -806,14 +860,21 @@ async def delete_program(
 ) -> dict:
     """Delete a program."""
     try:
+        program_service = get_program_service(request.state.db)
+        existing_program = await program_service.get_program(program_id)
+        if not existing_program:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Program with ID {program_id} not found"
+            )
+
         # Check permission
-        if not current_user.has_permission("program:delete"):
+        if not current_user.has_permission("program:delete", str(existing_program.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to delete programs"
+                detail="You don't have permission to delete programs for this masjid"
             )
         
-        program_service = get_program_service(request.state.db)
         success = await program_service.delete_program(
             program_id=program_id,
             user_id=current_user.id,
@@ -851,6 +912,12 @@ async def list_people(
 ) -> List[dict]:
     """List people."""
     try:
+        if not current_user.has_permission("person:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view people"
+            )
+
         person_service = get_person_service(request.state.db)
         
         if masjid_id:
@@ -879,6 +946,8 @@ async def list_people(
             }
             for person in people
         ]
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -893,6 +962,12 @@ async def get_person(
 ) -> dict:
     """Get a person by ID."""
     try:
+        if not current_user.has_permission("person:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to view people"
+            )
+
         person_service = get_person_service(current_user.db)
         person = await person_service.get_person(person_id)
         
@@ -937,10 +1012,10 @@ async def create_person(
     """Create a new person."""
     try:
         # Check permission
-        if not current_user.has_permission("person:create"):
+        if not current_user.has_permission("person:create", str(data.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to create people"
+                detail="You don't have permission to create people for this masjid"
             )
         
         person_dict = data.model_dump()
@@ -992,27 +1067,28 @@ async def update_person(
 ) -> dict:
     """Update an existing person."""
     try:
+        person_service = get_person_service(request.state.db)
+        existing_person = await person_service.get_person(person_id)
+        if not existing_person:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Person with ID {person_id} not found"
+            )
+
         # Check permission
-        if not current_user.has_permission("person:update"):
+        if not current_user.has_permission("person:update", str(existing_person.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to update people"
+                detail="You don't have permission to update people for this masjid"
             )
         
         update_dict = data.model_dump(exclude_unset=True)
-        person_service = get_person_service(request.state.db)
         person = await person_service.update_person(
             person_id=person_id,
             data=update_dict,
             user_id=current_user.id,
             request_id=x_request_id or request.headers.get("X-Request-ID")
         )
-        
-        if not person:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Person with ID {person_id} not found"
-            )
         
         return {
             "id": str(person.id),
@@ -1047,14 +1123,21 @@ async def delete_person(
 ) -> dict:
     """Delete a person."""
     try:
+        person_service = get_person_service(request.state.db)
+        existing_person = await person_service.get_person(person_id)
+        if not existing_person:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Person with ID {person_id} not found"
+            )
+
         # Check permission
-        if not current_user.has_permission("person:delete"):
+        if not current_user.has_permission("person:delete", str(existing_person.masjid_id)):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You don't have permission to delete people"
+                detail="You don't have permission to delete people for this masjid"
             )
         
-        person_service = get_person_service(request.state.db)
         success = await person_service.delete_person(
             person_id=person_id,
             user_id=current_user.id,
