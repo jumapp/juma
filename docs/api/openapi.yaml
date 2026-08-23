@@ -1,6 +1,8 @@
-openapi: 3.1.0
+openapi: 3.0.3
 info:
   title: Jumapp API
+  description: Jumapp API with full Swagger UI support for headers, request bodies,
+    and CRUD operations.
   version: 0.1.0
 paths:
   /api/v1/masjids/:
@@ -10,75 +12,64 @@ paths:
       summary: List Masjids
       description: List masjids with optional filters.
       operationId: list_masjids_api_v1_masjids__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: lat
         in: query
         required: false
         schema:
-          anyOf:
-          - type: number
-          - type: 'null'
           description: Latitude
           title: Lat
+          type: number
+          nullable: true
         description: Latitude
       - name: lon
         in: query
         required: false
         schema:
-          anyOf:
-          - type: number
-          - type: 'null'
           description: Longitude
           title: Lon
+          type: number
+          nullable: true
         description: Longitude
       - name: radius
         in: query
         required: false
         schema:
-          anyOf:
-          - type: integer
-          - type: 'null'
           description: Search radius in meters
           default: 2000
           title: Radius
+          type: integer
+          nullable: true
         description: Search radius in meters
       - name: city
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
           description: City name
           title: City
+          type: string
+          nullable: true
         description: City name
       - name: state
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
           description: State name
           title: State
+          type: string
+          nullable: true
         description: State name
       - name: accessible_by_transport
         in: query
         required: false
         schema:
-          anyOf:
-          - type: boolean
-          - type: 'null'
           description: Accessibility by public transport
           title: Accessible By Transport
+          type: boolean
+          nullable: true
         description: Accessibility by public transport
-      - &id001
-        name: X-Request-ID
-        in: header
-        required: false
-        schema:
-          type: string
-        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
@@ -102,32 +93,31 @@ paths:
       summary: Create Masjid
       description: Create a new masjid.
       operationId: create_masjid_api_v1_masjids__post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: &id002
-                name: Test Masjid
-                address_line1: 123 Test St
-                city: Test City
-                state: Test State
-                country: US
-                latitude: 40.0
-                longitude: -74.0
-                timezone: UTC
+              $ref: '#/components/schemas/MasjidCreate'
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
-                title: Response Create Masjid Api V1 Masjids  Post
+                $ref: '#/components/schemas/MasjidResponse'
         '422':
           description: Validation Error
           content:
@@ -141,6 +131,8 @@ paths:
       summary: Get Masjid
       description: Get a masjid by ID.
       operationId: get_masjid_api_v1_masjids__masjid_id__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: path
@@ -172,6 +164,8 @@ paths:
       summary: Update Masjid
       description: Update an existing masjid.
       operationId: update_masjid_api_v1_masjids__masjid_id__patch
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: path
@@ -182,25 +176,28 @@ paths:
           description: Masjid ID
           title: Masjid Id
         description: Masjid ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/MasjidUpdate'
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
-                title: Response Update Masjid Api V1 Masjids  Masjid Id  Patch
+                $ref: '#/components/schemas/MasjidResponse'
         '422':
           description: Validation Error
           content:
@@ -213,6 +210,8 @@ paths:
       summary: Delete Masjid
       description: Delete a masjid.
       operationId: delete_masjid_api_v1_masjids__masjid_id__delete
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: path
@@ -223,16 +222,22 @@ paths:
           description: Masjid ID
           title: Masjid Id
         description: Masjid ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
           content:
             application/json:
               schema:
-                type: object
-                additionalProperties: true
-                title: Response Delete Masjid Api V1 Masjids  Masjid Id  Delete
+                $ref: '#/components/schemas/DeleteResponse'
         '422':
           description: Validation Error
           content:
@@ -246,29 +251,28 @@ paths:
       summary: List Schedules
       description: List salat schedules.
       operationId: list_schedules_api_v1_schedules__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
           description: Masjid ID
           title: Masjid Id
+          type: string
+          format: uuid
+          nullable: true
         description: Masjid ID
       - name: salat_name
         in: query
         required: false
         schema:
-          anyOf:
-          - $ref: '#/components/schemas/SalatName'
-          - type: 'null'
           description: Salat name
           title: Salat Name
+          $ref: '#/components/schemas/SalatName'
+          nullable: true
         description: Salat name
-      - *id001
       responses:
         '200':
           description: Successful Response
@@ -292,15 +296,24 @@ paths:
       summary: Create Schedule
       description: Create a new salat schedule.
       operationId: create_schedule_api_v1_schedules__post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/SalatScheduleCreate'
       responses:
         '200':
           description: Successful Response
@@ -323,6 +336,8 @@ paths:
       summary: Get Schedule
       description: Get a salat schedule by ID.
       operationId: get_schedule_api_v1_schedules__schedule_id__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: schedule_id
         in: path
@@ -354,6 +369,8 @@ paths:
       summary: Update Schedule
       description: Update an existing salat schedule.
       operationId: update_schedule_api_v1_schedules__schedule_id__patch
+      security:
+      - HTTPBearer: []
       parameters:
       - name: schedule_id
         in: path
@@ -364,16 +381,21 @@ paths:
           description: Schedule ID
           title: Schedule Id
         description: Schedule ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/SalatScheduleUpdate'
       responses:
         '200':
           description: Successful Response
@@ -395,6 +417,8 @@ paths:
       summary: Delete Schedule
       description: Delete a salat schedule.
       operationId: delete_schedule_api_v1_schedules__schedule_id__delete
+      security:
+      - HTTPBearer: []
       parameters:
       - name: schedule_id
         in: path
@@ -405,7 +429,15 @@ paths:
           description: Schedule ID
           title: Schedule Id
         description: Schedule ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
@@ -428,29 +460,28 @@ paths:
       summary: List Programs
       description: List programs.
       operationId: list_programs_api_v1_programs__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
           description: Masjid ID
           title: Masjid Id
+          type: string
+          format: uuid
+          nullable: true
         description: Masjid ID
       - name: program_type
         in: query
         required: false
         schema:
-          anyOf:
-          - $ref: '#/components/schemas/ProgramType'
-          - type: 'null'
           description: Program type
           title: Program Type
+          $ref: '#/components/schemas/ProgramType'
+          nullable: true
         description: Program type
-      - *id001
       responses:
         '200':
           description: Successful Response
@@ -474,15 +505,24 @@ paths:
       summary: Create Program
       description: Create a new program.
       operationId: create_program_api_v1_programs__post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/ProgramCreate'
       responses:
         '200':
           description: Successful Response
@@ -505,6 +545,8 @@ paths:
       summary: Get Program
       description: Get a program by ID.
       operationId: get_program_api_v1_programs__program_id__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: program_id
         in: path
@@ -536,6 +578,8 @@ paths:
       summary: Update Program
       description: Update an existing program.
       operationId: update_program_api_v1_programs__program_id__patch
+      security:
+      - HTTPBearer: []
       parameters:
       - name: program_id
         in: path
@@ -546,16 +590,21 @@ paths:
           description: Program ID
           title: Program Id
         description: Program ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/ProgramUpdate'
       responses:
         '200':
           description: Successful Response
@@ -577,6 +626,8 @@ paths:
       summary: Delete Program
       description: Delete a program.
       operationId: delete_program_api_v1_programs__program_id__delete
+      security:
+      - HTTPBearer: []
       parameters:
       - name: program_id
         in: path
@@ -587,7 +638,15 @@ paths:
           description: Program ID
           title: Program Id
         description: Program ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
@@ -610,49 +669,46 @@ paths:
       summary: List People
       description: List people.
       operationId: list_people_api_v1_people__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-            format: uuid
-          - type: 'null'
           description: Masjid ID
           title: Masjid Id
+          type: string
+          format: uuid
+          nullable: true
         description: Masjid ID
       - name: role
         in: query
         required: false
         schema:
-          anyOf:
-          - $ref: '#/components/schemas/PersonRole'
-          - type: 'null'
           description: Role
           title: Role
+          $ref: '#/components/schemas/PersonRole'
+          nullable: true
         description: Role
       - name: access_level
         in: query
         required: false
         schema:
-          anyOf:
-          - $ref: '#/components/schemas/AccessLevel'
-          - type: 'null'
           description: Access level
           title: Access Level
+          $ref: '#/components/schemas/AccessLevel'
+          nullable: true
         description: Access level
       - name: is_active
         in: query
         required: false
         schema:
-          anyOf:
-          - type: boolean
-          - type: 'null'
           description: Active status
           title: Is Active
+          type: boolean
+          nullable: true
         description: Active status
-      - *id001
       responses:
         '200':
           description: Successful Response
@@ -676,15 +732,24 @@ paths:
       summary: Create Person
       description: Create a new person.
       operationId: create_person_api_v1_people__post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/PersonCreate'
       responses:
         '200':
           description: Successful Response
@@ -707,6 +772,8 @@ paths:
       summary: Get Person
       description: Get a person by ID.
       operationId: get_person_api_v1_people__person_id__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: person_id
         in: path
@@ -738,6 +805,8 @@ paths:
       summary: Update Person
       description: Update an existing person.
       operationId: update_person_api_v1_people__person_id__patch
+      security:
+      - HTTPBearer: []
       parameters:
       - name: person_id
         in: path
@@ -748,16 +817,21 @@ paths:
           description: Person ID
           title: Person Id
         description: Person ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
-              example: *id002
+              $ref: '#/components/schemas/PersonUpdate'
       responses:
         '200':
           description: Successful Response
@@ -779,6 +853,8 @@ paths:
       summary: Delete Person
       description: Delete a person.
       operationId: delete_person_api_v1_people__person_id__delete
+      security:
+      - HTTPBearer: []
       parameters:
       - name: person_id
         in: path
@@ -789,7 +865,15 @@ paths:
           description: Person ID
           title: Person Id
         description: Person ID
-      - *id001
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
@@ -812,6 +896,8 @@ paths:
       summary: Upload Photo
       description: Upload a photo to a masjid.
       operationId: upload_photo_api_v1_photos_masjids__masjid_id__photos_post
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: path
@@ -822,14 +908,21 @@ paths:
           description: Masjid ID
           title: Masjid Id
         description: Masjid ID
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
+              $ref: '#/components/schemas/PhotoUpload'
       responses:
         '200':
           description: Successful Response
@@ -853,6 +946,8 @@ paths:
       summary: Delete Photo
       description: Delete a photo.
       operationId: delete_photo_api_v1_photos_masjids__masjid_id__photos__photo_id__delete
+      security:
+      - HTTPBearer: []
       parameters:
       - name: masjid_id
         in: path
@@ -872,6 +967,15 @@ paths:
           description: Photo ID
           title: Photo Id
         description: Photo ID
+      - name: X-Request-ID
+        in: header
+        required: false
+        schema:
+          description: Request ID for audit tracing
+          title: X-Request-Id
+          type: string
+          nullable: true
+        description: Request ID for audit tracing
       responses:
         '200':
           description: Successful Response
@@ -895,28 +999,28 @@ paths:
       summary: Get Sync Snapshot
       description: Get a sync snapshot or delta.
       operationId: get_sync_snapshot_api_v1_sync__get
+      security:
+      - HTTPBearer: []
       parameters:
       - name: cursor
         in: query
         required: false
         schema:
-          anyOf:
-          - type: string
-          - type: 'null'
           description: Cursor for pagination
           title: Cursor
+          type: string
+          nullable: true
         description: Cursor for pagination
       - name: entity_types
         in: query
         required: false
         schema:
-          anyOf:
-          - type: array
-            items:
-              type: string
-          - type: 'null'
           description: Types of entities to sync
           title: Entity Types
+          type: array
+          items:
+            type: string
+          nullable: true
         description: Types of entities to sync
       responses:
         '200':
@@ -944,9 +1048,7 @@ paths:
         content:
           application/json:
             schema:
-              additionalProperties: true
-              type: object
-              title: Data
+              $ref: '#/components/schemas/SyncMutationsRequest'
         required: true
       responses:
         '200':
@@ -963,6 +1065,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
   /api/v1/admin/role-requests:
     get:
       tags:
@@ -981,6 +1085,8 @@ paths:
                   type: object
                 type: array
                 title: Response List Role Requests Api V1 Admin Role Requests Get
+      security:
+      - HTTPBearer: []
   /api/v1/admin/role-requests/{role_request_id}:
     patch:
       tags:
@@ -988,6 +1094,8 @@ paths:
       summary: Update Role Request
       description: Update a role request status.
       operationId: update_role_request_api_v1_admin_role_requests__role_request_id__patch
+      security:
+      - HTTPBearer: []
       parameters:
       - name: role_request_id
         in: path
@@ -1003,9 +1111,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              additionalProperties: true
-              title: Data
+              $ref: '#/components/schemas/RoleRequestUpdate'
       responses:
         '200':
           description: Successful Response
@@ -1040,6 +1146,8 @@ paths:
                   type: object
                 type: array
                 title: Response List Audit Events Api V1 Admin Audit Events Get
+      security:
+      - HTTPBearer: []
   /:
     get:
       summary: Root
@@ -1089,6 +1197,21 @@ components:
       - general
       - viewer
       title: AccessLevel
+    DeleteResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Deleted item UUID
+        status:
+          type: string
+          title: Status
+          description: Deletion status
+          default: deleted
+      type: object
+      required:
+      - id
+      title: DeleteResponse
     HTTPValidationError:
       properties:
         detail:
@@ -1098,6 +1221,517 @@ components:
           title: Detail
       type: object
       title: HTTPValidationError
+    MasjidCreate:
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Name
+          description: Name of the masjid
+          example: Jama Masjid Dehradun
+        address_line1:
+          type: string
+          title: Address Line1
+          description: Primary address line
+          example: 123 Main Street, Paltan Bazaar
+        address_line2:
+          title: Address Line2
+          description: Secondary address line
+          example: Near Clock Tower
+          type: string
+          nullable: true
+        city:
+          type: string
+          title: City
+          description: City name
+          example: Dehradun
+        state:
+          type: string
+          title: State
+          description: State name
+          default: Uttarakhand
+          example: Uttarakhand
+        postal_code:
+          title: Postal Code
+          description: Postal code
+          example: '248001'
+          type: string
+          nullable: true
+        country:
+          type: string
+          maxLength: 2
+          minLength: 2
+          title: Country
+          description: ISO 2-letter country code
+          default: IN
+          example: IN
+        latitude:
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          title: Latitude
+          description: Latitude (-90 to 90)
+          example: 30.3165
+        longitude:
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          title: Longitude
+          description: Longitude (-180 to 180)
+          example: 78.0322
+        timezone:
+          type: string
+          title: Timezone
+          description: IANA Timezone string
+          default: Asia/Kolkata
+          example: Asia/Kolkata
+        map_id:
+          title: Map Id
+          description: Google Maps Place ID or external map reference
+          example: ChIJbU60yGQpEmsR1w28Z785f_U
+          type: string
+          nullable: true
+        accessible_by_public_transport:
+          type: boolean
+          title: Accessible By Public Transport
+          description: Whether accessible by public transport
+          default: false
+        accessibility_details:
+          title: Accessibility Details
+          description: Public transport access details
+          type: string
+          nullable: true
+        highway_masjid:
+          type: boolean
+          title: Highway Masjid
+          description: Whether located on/near a major highway
+          default: false
+        on_road_masjid:
+          type: boolean
+          title: On Road Masjid
+          description: Whether easily accessible directly from main road
+          default: false
+        opens_at:
+          title: Opens At
+          description: Daily opening time (HH:MM:SS)
+          example: 04:30:00
+          type: string
+          nullable: true
+        closes_at:
+          title: Closes At
+          description: Daily closing time (HH:MM:SS)
+          example: '22:00:00'
+          type: string
+          nullable: true
+        is_24_hours:
+          type: boolean
+          title: Is 24 Hours
+          description: Whether open 24 hours
+          default: false
+        ramadan_adjusted_hours:
+          title: Ramadan Adjusted Hours
+          description: Adjusted operating hours during Ramadan
+          additionalProperties: true
+          type: object
+          nullable: true
+        has_wudu_stations:
+          type: boolean
+          title: Has Wudu Stations
+          description: Wudu facilities available
+          default: false
+        has_urinals:
+          type: boolean
+          title: Has Urinals
+          description: Urinals available
+          default: false
+        has_toilets:
+          type: boolean
+          title: Has Toilets
+          description: Toilets available
+          default: false
+        has_womens_prayer_area:
+          type: boolean
+          title: Has Womens Prayer Area
+          description: Dedicated women prayer area
+          default: false
+        has_library:
+          type: boolean
+          title: Has Library
+          description: Library available
+          default: false
+        has_parking:
+          type: boolean
+          title: Has Parking
+          description: On-site parking available
+          default: false
+        has_street_parking:
+          type: boolean
+          title: Has Street Parking
+          description: Street parking available
+          default: false
+        other_items:
+          title: Other Items
+          description: Other facilities or remarks
+          type: string
+          nullable: true
+        meta:
+          additionalProperties: true
+          type: object
+          title: Meta
+          description: Additional metadata JSON
+      type: object
+      required:
+      - name
+      - address_line1
+      - city
+      - latitude
+      - longitude
+      title: MasjidCreate
+      example:
+        accessible_by_public_transport: true
+        address_line1: 123 Main Street, Paltan Bazaar
+        address_line2: Near Clock Tower
+        city: Dehradun
+        closes_at: '22:00:00'
+        country: IN
+        has_parking: true
+        has_toilets: true
+        has_womens_prayer_area: true
+        has_wudu_stations: true
+        highway_masjid: false
+        is_24_hours: false
+        latitude: 30.3165
+        longitude: 78.0322
+        meta: {}
+        name: Jama Masjid Dehradun
+        on_road_masjid: true
+        opens_at: 04:30:00
+        postal_code: '248001'
+        state: Uttarakhand
+        timezone: Asia/Kolkata
+    MasjidResponse:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Masjid UUID
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        name:
+          type: string
+          title: Name
+          description: Name of the masjid
+          example: Jama Masjid Dehradun
+        address_line1:
+          type: string
+          title: Address Line1
+          example: 123 Main Street, Paltan Bazaar
+        address_line2:
+          title: Address Line2
+          example: Near Clock Tower
+          type: string
+          nullable: true
+        city:
+          type: string
+          title: City
+          example: Dehradun
+        state:
+          type: string
+          title: State
+          default: Uttarakhand
+          example: Uttarakhand
+        postal_code:
+          title: Postal Code
+          example: '248001'
+          type: string
+          nullable: true
+        country:
+          type: string
+          title: Country
+          default: IN
+          example: IN
+        latitude:
+          type: number
+          title: Latitude
+          example: 30.3165
+        longitude:
+          type: number
+          title: Longitude
+          example: 78.0322
+        timezone:
+          type: string
+          title: Timezone
+          default: Asia/Kolkata
+          example: Asia/Kolkata
+        created_at:
+          title: Created At
+          example: '2026-08-23T12:00:00Z'
+          type: string
+          nullable: true
+        updated_at:
+          title: Updated At
+          example: '2026-08-23T12:00:00Z'
+          type: string
+          nullable: true
+      type: object
+      required:
+      - id
+      - name
+      - address_line1
+      - city
+      - latitude
+      - longitude
+      title: MasjidResponse
+    MasjidUpdate:
+      properties:
+        name:
+          title: Name
+          type: string
+          maxLength: 200
+          minLength: 1
+          nullable: true
+        address_line1:
+          title: Address Line1
+          type: string
+          nullable: true
+        address_line2:
+          title: Address Line2
+          type: string
+          nullable: true
+        city:
+          title: City
+          type: string
+          nullable: true
+        state:
+          title: State
+          type: string
+          nullable: true
+        postal_code:
+          title: Postal Code
+          type: string
+          nullable: true
+        country:
+          title: Country
+          type: string
+          maxLength: 2
+          minLength: 2
+          nullable: true
+        latitude:
+          title: Latitude
+          type: number
+          maximum: 90.0
+          minimum: -90.0
+          nullable: true
+        longitude:
+          title: Longitude
+          type: number
+          maximum: 180.0
+          minimum: -180.0
+          nullable: true
+        timezone:
+          title: Timezone
+          type: string
+          nullable: true
+        map_id:
+          title: Map Id
+          type: string
+          nullable: true
+        accessible_by_public_transport:
+          title: Accessible By Public Transport
+          type: boolean
+          nullable: true
+        accessibility_details:
+          title: Accessibility Details
+          type: string
+          nullable: true
+        highway_masjid:
+          title: Highway Masjid
+          type: boolean
+          nullable: true
+        on_road_masjid:
+          title: On Road Masjid
+          type: boolean
+          nullable: true
+        opens_at:
+          title: Opens At
+          type: string
+          nullable: true
+        closes_at:
+          title: Closes At
+          type: string
+          nullable: true
+        is_24_hours:
+          title: Is 24 Hours
+          type: boolean
+          nullable: true
+        ramadan_adjusted_hours:
+          title: Ramadan Adjusted Hours
+          additionalProperties: true
+          type: object
+          nullable: true
+        has_wudu_stations:
+          title: Has Wudu Stations
+          type: boolean
+          nullable: true
+        has_urinals:
+          title: Has Urinals
+          type: boolean
+          nullable: true
+        has_toilets:
+          title: Has Toilets
+          type: boolean
+          nullable: true
+        has_womens_prayer_area:
+          title: Has Womens Prayer Area
+          type: boolean
+          nullable: true
+        has_library:
+          title: Has Library
+          type: boolean
+          nullable: true
+        has_parking:
+          title: Has Parking
+          type: boolean
+          nullable: true
+        has_street_parking:
+          title: Has Street Parking
+          type: boolean
+          nullable: true
+        other_items:
+          title: Other Items
+          type: string
+          nullable: true
+        meta:
+          title: Meta
+          additionalProperties: true
+          type: object
+          nullable: true
+      type: object
+      title: MasjidUpdate
+      example:
+        has_parking: true
+        has_womens_prayer_area: true
+        name: Updated Jama Masjid Dehradun
+    MutationItem:
+      properties:
+        id:
+          type: string
+          title: Id
+          description: Client mutation ID
+        entity:
+          type: string
+          title: Entity
+          description: Target entity type (masjid, salat_schedule, program, person)
+        type:
+          type: string
+          title: Type
+          description: Mutation type (CREATE, UPDATE, DELETE)
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+          description: Entity payload data
+      type: object
+      required:
+      - id
+      - entity
+      - type
+      - payload
+      title: MutationItem
+      example:
+        entity: masjid
+        id: mut-12345
+        payload:
+          address_line1: Road 1
+          city: Dehradun
+          country: IN
+          latitude: 30.3165
+          longitude: 78.0322
+          name: Offline Masjid Test
+          state: Uttarakhand
+          timezone: Asia/Kolkata
+        type: CREATE
+    PersonCreate:
+      properties:
+        masjid_id:
+          type: string
+          format: uuid
+          title: Masjid Id
+          description: ID of the associated masjid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        full_name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Full Name
+          description: Full name
+          example: Sheikh Ahmad Ali
+        role:
+          $ref: '#/components/schemas/PersonRole'
+          description: Role in masjid
+          example: imam
+        access_level:
+          $ref: '#/components/schemas/AccessLevel'
+          description: System access level
+          default: viewer
+          example: editor
+        phone_primary:
+          title: Phone Primary
+          description: Primary phone number
+          example: '+919876543210'
+          type: string
+          nullable: true
+        phone_alternate:
+          title: Phone Alternate
+          description: Alternate phone number
+          example: '+919876543211'
+          type: string
+          nullable: true
+        email:
+          title: Email
+          description: Email address
+          example: ahmad.ali@example.com
+          type: string
+          nullable: true
+        skills:
+          title: Skills
+          description: Skills or qualifications
+          example: Tajweed, Fiqh, Youth Counseling
+          type: string
+          nullable: true
+        bio:
+          title: Bio
+          description: Short bio
+          example: Graduate of Al-Azhar University
+          type: string
+          nullable: true
+        photo_url:
+          title: Photo Url
+          description: Photo URL
+          example: https://example.com/photos/ahmad.jpg
+          type: string
+          nullable: true
+        is_active:
+          type: boolean
+          title: Is Active
+          description: Active status
+          default: true
+      type: object
+      required:
+      - masjid_id
+      - full_name
+      - role
+      title: PersonCreate
+      example:
+        access_level: editor
+        bio: Lead Imam since 2018
+        email: ahmad.ali@example.com
+        full_name: Sheikh Ahmad Ali
+        is_active: true
+        masjid_id: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        phone_primary: '+919876543210'
+        role: imam
+        skills: Tajweed, Fiqh
     PersonRole:
       type: string
       enum:
@@ -1106,6 +1740,180 @@ components:
       - committee_member
       - other
       title: PersonRole
+    PersonUpdate:
+      properties:
+        full_name:
+          title: Full Name
+          type: string
+          maxLength: 200
+          minLength: 1
+          nullable: true
+        role:
+          $ref: '#/components/schemas/PersonRole'
+          nullable: true
+        access_level:
+          $ref: '#/components/schemas/AccessLevel'
+          nullable: true
+        phone_primary:
+          title: Phone Primary
+          type: string
+          nullable: true
+        phone_alternate:
+          title: Phone Alternate
+          type: string
+          nullable: true
+        email:
+          title: Email
+          type: string
+          nullable: true
+        skills:
+          title: Skills
+          type: string
+          nullable: true
+        bio:
+          title: Bio
+          type: string
+          nullable: true
+        photo_url:
+          title: Photo Url
+          type: string
+          nullable: true
+        is_active:
+          title: Is Active
+          type: boolean
+          nullable: true
+      type: object
+      title: PersonUpdate
+      example:
+        bio: Updated biography details
+        phone_primary: '+919876543210'
+        role: imam
+    PhotoUpload:
+      properties:
+        filename:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Filename
+          description: Original photo filename
+          example: masjid_front.jpg
+        file_path:
+          type: string
+          title: File Path
+          description: Storage path or URI
+          example: uploads/masjids/masjid_front.jpg
+        mime_type:
+          type: string
+          title: Mime Type
+          description: MIME type (image/jpeg, image/png, image/webp)
+          example: image/jpeg
+        size:
+          type: integer
+          maximum: 100000000.0
+          minimum: 0.0
+          title: Size
+          description: File size in bytes
+          example: 1048576
+        width:
+          title: Width
+          description: Image width in pixels
+          example: 1920
+          type: integer
+          exclusiveMinimum: 0.0
+          nullable: true
+        height:
+          title: Height
+          description: Image height in pixels
+          example: 1080
+          type: integer
+          exclusiveMinimum: 0.0
+          nullable: true
+        caption:
+          title: Caption
+          description: Photo caption
+          example: Main entrance view of Jama Masjid
+          type: string
+          maxLength: 200
+          nullable: true
+        order_index:
+          type: integer
+          minimum: 0.0
+          title: Order Index
+          description: Display order index
+          default: 0
+          example: 0
+        is_featured:
+          type: boolean
+          title: Is Featured
+          description: Whether featured photo
+          default: false
+      type: object
+      required:
+      - filename
+      - file_path
+      - mime_type
+      - size
+      title: PhotoUpload
+      example:
+        caption: Main entrance view of Jama Masjid
+        file_path: uploads/masjids/masjid_front.jpg
+        filename: masjid_front.jpg
+        height: 1080
+        is_featured: true
+        mime_type: image/jpeg
+        order_index: 0
+        size: 1048576
+        width: 1920
+    ProgramCreate:
+      properties:
+        masjid_id:
+          type: string
+          format: uuid
+          title: Masjid Id
+          description: ID of the associated masjid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        type:
+          $ref: '#/components/schemas/ProgramType'
+          description: Program type
+          example: quran_class
+        name:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Name
+          description: Program name
+          example: Weekly Tafseer Study
+        description:
+          title: Description
+          description: Program description
+          example: Detailed commentary on Surah Yaseen after Maghrib
+          type: string
+          nullable: true
+        max_participants:
+          title: Max Participants
+          description: Maximum participants allowed
+          example: 50
+          type: integer
+          exclusiveMinimum: 0.0
+          nullable: true
+        is_active:
+          type: boolean
+          title: Is Active
+          description: Whether program is active
+          default: true
+      type: object
+      required:
+      - masjid_id
+      - type
+      - name
+      title: ProgramCreate
+      example:
+        description: Detailed commentary after Maghrib every Friday
+        is_active: true
+        masjid_id: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        max_participants: 50
+        name: Weekly Tafseer Study
+        type: quran_class
     ProgramType:
       type: string
       enum:
@@ -1115,6 +1923,56 @@ components:
       - hadith
       - other_course
       title: ProgramType
+    ProgramUpdate:
+      properties:
+        type:
+          $ref: '#/components/schemas/ProgramType'
+          nullable: true
+        name:
+          title: Name
+          type: string
+          maxLength: 200
+          minLength: 1
+          nullable: true
+        description:
+          title: Description
+          type: string
+          nullable: true
+        max_participants:
+          title: Max Participants
+          type: integer
+          exclusiveMinimum: 0.0
+          nullable: true
+        is_active:
+          title: Is Active
+          type: boolean
+          nullable: true
+      type: object
+      title: ProgramUpdate
+      example:
+        is_active: true
+        max_participants: 75
+        name: Advanced Quran & Hadith Study
+    RoleRequestUpdate:
+      properties:
+        status:
+          type: string
+          title: Status
+          description: New request status ('approved' or 'rejected')
+          example: approved
+        reason:
+          title: Reason
+          description: Reason or notes for decision
+          example: Verified identity and committee membership
+          type: string
+          nullable: true
+      type: object
+      required:
+      - status
+      title: RoleRequestUpdate
+      example:
+        reason: Verified identity and committee membership
+        status: approved
     SalatName:
       type: string
       enum:
@@ -1125,6 +1983,94 @@ components:
       - isha
       - jumuah
       title: SalatName
+    SalatScheduleCreate:
+      properties:
+        masjid_id:
+          type: string
+          format: uuid
+          title: Masjid Id
+          description: ID of the associated masjid
+          example: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        salat_name:
+          $ref: '#/components/schemas/SalatName'
+          description: Name of the salat (fajr, dhuhr, asr, maghrib, isha, jumuah)
+          example: fajr
+        adhan_time:
+          title: Adhan Time
+          description: Adhan time (HH:MM:SS)
+          example: 05:00:00
+          type: string
+          nullable: true
+        iqama_time:
+          type: string
+          title: Iqama Time
+          description: Iqama time (HH:MM:SS)
+          example: 05:30:00
+        khutbah_time:
+          title: Khutbah Time
+          description: Khutbah time for Jumuah (HH:MM:SS)
+          example: '13:15:00'
+          type: string
+          nullable: true
+      type: object
+      required:
+      - masjid_id
+      - salat_name
+      - iqama_time
+      title: SalatScheduleCreate
+      example:
+        adhan_time: 05:00:00
+        iqama_time: 05:30:00
+        masjid_id: a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11
+        salat_name: fajr
+    SalatScheduleUpdate:
+      properties:
+        adhan_time:
+          title: Adhan Time
+          description: Adhan time (HH:MM:SS)
+          type: string
+          nullable: true
+        iqama_time:
+          title: Iqama Time
+          description: Iqama time (HH:MM:SS)
+          type: string
+          nullable: true
+        khutbah_time:
+          title: Khutbah Time
+          description: Khutbah time (HH:MM:SS)
+          type: string
+          nullable: true
+      type: object
+      title: SalatScheduleUpdate
+      example:
+        adhan_time: 05:05:00
+        iqama_time: 05:35:00
+    SyncMutationsRequest:
+      properties:
+        mutations:
+          items:
+            $ref: '#/components/schemas/MutationItem'
+          type: array
+          title: Mutations
+          description: List of client offline mutations to process
+      type: object
+      required:
+      - mutations
+      title: SyncMutationsRequest
+      example:
+        mutations:
+        - entity: masjid
+          id: mut-12345
+          payload:
+            address_line1: Road 1
+            city: Dehradun
+            country: IN
+            latitude: 30.3165
+            longitude: 78.0322
+            name: Offline Masjid Test
+            state: Uttarakhand
+            timezone: Asia/Kolkata
+          type: CREATE
     ValidationError:
       properties:
         loc:
@@ -1147,19 +2093,28 @@ components:
       - type
       title: ValidationError
   securitySchemes:
-    bearerAuth:
+    HTTPBearer:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    devAuth:
+      description: Bearer token authorization
+    SuperAdminToken:
+      type: apiKey
+      in: header
+      name: X-Super-Admin-Token
+      description: 'Super Admin token for full access (default: dev-super-admin-token)'
+    MasjidEditorToken:
+      type: apiKey
+      in: header
+      name: X-Masjid-Editor-Token
+      description: Masjid Editor token (pass masjid UUID)
+    DevUserToken:
       type: apiKey
       in: header
       name: X-Dev-User-Token
-    requestId:
-      type: apiKey
-      in: header
-      name: X-Request-ID
+      description: Dev user authorization token
 security:
-- bearerAuth: []
-- devAuth: []
-- requestId: []
+- SuperAdminToken: []
+- MasjidEditorToken: []
+- DevUserToken: []
+- HTTPBearer: []

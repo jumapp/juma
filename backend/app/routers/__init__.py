@@ -8,7 +8,7 @@ authorization, and error handling.
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, Body, Depends, Header, HTTPException, Path, Query, Request, status
 from fastapi.responses import JSONResponse
 
 from app.auth import get_current_user_dependency, User
@@ -19,6 +19,16 @@ from app.services import (
 from app.enums import (
     SalatName, AccessLevel, PersonRole, ProgramType, 
     ScheduleFrequency, PhotoModerationStatus
+)
+from app.schemas import (
+    MasjidCreate, MasjidUpdate, MasjidResponse,
+    SalatScheduleCreate, SalatScheduleUpdate, SalatScheduleResponse,
+    ProgramCreate, ProgramUpdate, ProgramResponse,
+    PersonCreate, PersonUpdate, PersonResponse,
+    PhotoUpload, PhotoResponse,
+    SyncMutationsRequest,
+    RoleRequestUpdate,
+    DeleteResponse,
 )
 
 # Masjids Router
@@ -254,10 +264,11 @@ async def get_masjid(
         )
 
 
-@masjid_router.post("/")
+@masjid_router.post("/", response_model=MasjidResponse)
 async def create_masjid(
     request: Request,
-    data: dict,
+    data: MasjidCreate,
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Create a new masjid."""
@@ -269,34 +280,12 @@ async def create_masjid(
                 detail="You don't have permission to create masjids"
             )
         
-        # Validate required fields
-        required_fields = ["name", "address_line1", "city", "state", "country", 
-                          "latitude", "longitude", "timezone"]
-        for field in required_fields:
-            if field not in data:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Missing required field: {field}"
-                )
-        
-        # Validate coordinates
-        lat, lon = data["latitude"], data["longitude"]
-        if not (-90 <= lat <= 90):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Latitude must be between -90 and 90"
-            )
-        if not (-180 <= lon <= 180):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Longitude must be between -180 and 180"
-            )
-        
+        masjid_dict = data.model_dump()
         masjid_service = get_masjid_service(request.state.db)
         masjid = await masjid_service.create_masjid(
-            data=data,
+            data=masjid_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         return {
@@ -322,11 +311,12 @@ async def create_masjid(
         )
 
 
-@masjid_router.patch("/{masjid_id}")
+@masjid_router.patch("/{masjid_id}", response_model=MasjidResponse)
 async def update_masjid(
     request: Request,
     masjid_id: UUID = Path(..., description="Masjid ID"),
-    data: dict = Body(...),
+    data: MasjidUpdate = Body(...),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Update an existing masjid."""
@@ -338,12 +328,13 @@ async def update_masjid(
                 detail="You don't have permission to update this masjid"
             )
         
+        update_dict = data.model_dump(exclude_unset=True)
         masjid_service = get_masjid_service(request.state.db)
         masjid = await masjid_service.update_masjid(
             masjid_id=masjid_id,
-            data=data,
+            data=update_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not masjid:
@@ -375,10 +366,11 @@ async def update_masjid(
         )
 
 
-@masjid_router.delete("/{masjid_id}")
+@masjid_router.delete("/{masjid_id}", response_model=DeleteResponse)
 async def delete_masjid(
     request: Request,
     masjid_id: UUID = Path(..., description="Masjid ID"),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Delete a masjid."""
@@ -394,7 +386,7 @@ async def delete_masjid(
         success = await masjid_service.delete_masjid(
             masjid_id=masjid_id,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not success:
@@ -494,7 +486,8 @@ async def get_schedule(
 @salat_router.post("/")
 async def create_schedule(
     request: Request,
-    data: dict,
+    data: SalatScheduleCreate,
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Create a new salat schedule."""
@@ -506,26 +499,17 @@ async def create_schedule(
                 detail="You don't have permission to create salat schedules"
             )
         
-        # Validate required fields
-        if "masjid_id" not in data or "salat_name" not in data or "iqama_time" not in data:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required fields: masjid_id, salat_name, iqama_time"
-            )
-        
-        # Validate salat name
-        if data["salat_name"] not in [name.value for name in SalatName]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid salat name: {data['salat_name']}"
-            )
+        schedule_dict = data.model_dump()
+        schedule_dict["masjid_id"] = str(data.masjid_id)
+        if isinstance(schedule_dict.get("salat_name"), SalatName):
+            schedule_dict["salat_name"] = data.salat_name.value
         
         salat_service = get_salat_service(request.state.db)
         schedule = await salat_service.create_schedule(
-            masjid_id=data["masjid_id"],
-            data=data,
+            masjid_id=data.masjid_id,
+            data=schedule_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         return {
@@ -550,7 +534,8 @@ async def create_schedule(
 async def update_schedule(
     request: Request,
     schedule_id: UUID = Path(..., description="Schedule ID"),
-    data: dict = Body(...),
+    data: SalatScheduleUpdate = Body(...),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Update an existing salat schedule."""
@@ -562,12 +547,13 @@ async def update_schedule(
                 detail="You don't have permission to update salat schedules"
             )
         
+        update_dict = data.model_dump(exclude_unset=True)
         salat_service = get_salat_service(request.state.db)
         schedule = await salat_service.update_schedule(
             schedule_id=schedule_id,
-            data=data,
+            data=update_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not schedule:
@@ -598,6 +584,7 @@ async def update_schedule(
 async def delete_schedule(
     request: Request,
     schedule_id: UUID = Path(..., description="Schedule ID"),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Delete a salat schedule."""
@@ -613,7 +600,7 @@ async def delete_schedule(
         success = await salat_service.delete_schedule(
             schedule_id=schedule_id,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not success:
@@ -714,7 +701,8 @@ async def get_program(
 @program_router.post("/")
 async def create_program(
     request: Request,
-    data: dict,
+    data: ProgramCreate,
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Create a new program."""
@@ -726,26 +714,17 @@ async def create_program(
                 detail="You don't have permission to create programs"
             )
         
-        # Validate required fields
-        if "masjid_id" not in data or "type" not in data or "name" not in data:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required fields: masjid_id, type, name"
-            )
-        
-        # Validate program type
-        if data["type"] not in [pt.value for pt in ProgramType]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid program type: {data['type']}"
-            )
+        program_dict = data.model_dump()
+        program_dict["masjid_id"] = str(data.masjid_id)
+        if isinstance(program_dict.get("type"), ProgramType):
+            program_dict["type"] = data.type.value
         
         program_service = get_program_service(request.state.db)
         program = await program_service.create_program(
-            masjid_id=data["masjid_id"],
-            data=data,
+            masjid_id=data.masjid_id,
+            data=program_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         return {
@@ -771,7 +750,8 @@ async def create_program(
 async def update_program(
     request: Request,
     program_id: UUID = Path(..., description="Program ID"),
-    data: dict = Body(...),
+    data: ProgramUpdate = Body(...),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Update an existing program."""
@@ -783,12 +763,13 @@ async def update_program(
                 detail="You don't have permission to update programs"
             )
         
+        update_dict = data.model_dump(exclude_unset=True)
         program_service = get_program_service(request.state.db)
         program = await program_service.update_program(
             program_id=program_id,
-            data=data,
+            data=update_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not program:
@@ -820,6 +801,7 @@ async def update_program(
 async def delete_program(
     request: Request,
     program_id: UUID = Path(..., description="Program ID"),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Delete a program."""
@@ -835,7 +817,7 @@ async def delete_program(
         success = await program_service.delete_program(
             program_id=program_id,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not success:
@@ -948,7 +930,8 @@ async def get_person(
 @person_router.post("/")
 async def create_person(
     request: Request,
-    data: dict,
+    data: PersonCreate,
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Create a new person."""
@@ -960,33 +943,19 @@ async def create_person(
                 detail="You don't have permission to create people"
             )
         
-        # Validate required fields
-        if "masjid_id" not in data or "full_name" not in data or "role" not in data or "access_level" not in data:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required fields: masjid_id, full_name, role, access_level"
-            )
-        
-        # Validate role
-        if data["role"] not in [role.value for role in PersonRole]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid role: {data['role']}"
-            )
-        
-        # Validate access level
-        if data["access_level"] not in [level.value for level in AccessLevel]:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid access level: {data['access_level']}"
-            )
-        
+        person_dict = data.model_dump()
+        person_dict["masjid_id"] = str(data.masjid_id)
+        if isinstance(person_dict.get("role"), PersonRole):
+            person_dict["role"] = data.role.value
+        if isinstance(person_dict.get("access_level"), AccessLevel):
+            person_dict["access_level"] = data.access_level.value
+
         person_service = get_person_service(request.state.db)
         person = await person_service.create_person(
-            masjid_id=data["masjid_id"],
-            data=data,
+            masjid_id=data.masjid_id,
+            data=person_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         return {
@@ -1017,7 +986,8 @@ async def create_person(
 async def update_person(
     request: Request,
     person_id: UUID = Path(..., description="Person ID"),
-    data: dict = Body(...),
+    data: PersonUpdate = Body(...),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Update an existing person."""
@@ -1029,12 +999,13 @@ async def update_person(
                 detail="You don't have permission to update people"
             )
         
+        update_dict = data.model_dump(exclude_unset=True)
         person_service = get_person_service(request.state.db)
         person = await person_service.update_person(
             person_id=person_id,
-            data=data,
+            data=update_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not person:
@@ -1071,6 +1042,7 @@ async def update_person(
 async def delete_person(
     request: Request,
     person_id: UUID = Path(..., description="Person ID"),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Delete a person."""
@@ -1086,7 +1058,7 @@ async def delete_person(
         success = await person_service.delete_person(
             person_id=person_id,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not success:
@@ -1113,7 +1085,8 @@ photo_router = APIRouter(prefix="/photos", tags=["Photos"])
 async def upload_photo(
     request: Request,
     masjid_id: UUID = Path(..., description="Masjid ID"),
-    data: dict = Body(...),
+    data: PhotoUpload = Body(...),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Upload a photo to a masjid."""
@@ -1125,19 +1098,13 @@ async def upload_photo(
                 detail="You don't have permission to upload photos to this masjid"
             )
         
-        # Validate required fields
-        if "filename" not in data or "file_path" not in data or "mime_type" not in data or "size" not in data:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Missing required fields: filename, file_path, mime_type, size"
-            )
-        
+        photo_dict = data.model_dump()
         photo_service = get_photo_service(request.state.db)
         photo = await photo_service.upload_photo(
             masjid_id=masjid_id,
-            file_data=data,
+            file_data=photo_dict,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         return {
@@ -1170,6 +1137,7 @@ async def delete_photo(
     request: Request,
     masjid_id: UUID = Path(..., description="Masjid ID"),
     photo_id: UUID = Path(..., description="Photo ID"),
+    x_request_id: Optional[str] = Header(None, alias="X-Request-ID", description="Request ID for audit tracing"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Delete a photo."""
@@ -1186,7 +1154,7 @@ async def delete_photo(
             photo_id=photo_id,
             masjid_id=masjid_id,
             user_id=current_user.id,
-            request_id=request.headers.get("X-Request-ID")
+            request_id=x_request_id or request.headers.get("X-Request-ID")
         )
         
         if not success:
@@ -1235,7 +1203,7 @@ async def get_sync_snapshot(
 @sync_router.post("/mutations")
 async def sync_mutations(
     request: Request,
-    data: dict,
+    data: SyncMutationsRequest,
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Sync mutations from client."""
@@ -1247,7 +1215,8 @@ async def sync_mutations(
                 detail="You don't have permission to sync mutations"
             )
         
-        mutations = data.get("mutations", [])
+        sync_dict = data.model_dump()
+        mutations = sync_dict.get("mutations", [])
         
         sync_service = get_sync_service(request.state.db)
         results = await sync_service.process_mutations(mutations)
@@ -1294,7 +1263,7 @@ async def list_role_requests(
 async def update_role_request(
     request: Request,
     role_request_id: UUID = Path(..., description="Role Request ID"),
-    data: dict = Body(...),
+    data: RoleRequestUpdate = Body(...),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
     """Update a role request status."""

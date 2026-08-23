@@ -1,12 +1,14 @@
 """Jumapp FastAPI application entry point."""
 
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import Any, AsyncGenerator
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
+
+from fastapi.openapi.utils import get_openapi
 
 from app.config import settings
 from app.db import engine, get_db
@@ -34,6 +36,83 @@ app = FastAPI(
     debug=settings.debug,
     lifespan=lifespan,
 )
+
+
+def _sanitize_nullables(d: Any) -> None:
+    """Recursively convert OpenAPI 3.1 `anyOf` nullables into OpenAPI 3.0 `nullable: true`."""
+    if isinstance(d, dict):
+        if "anyOf" in d and len(d["anyOf"]) == 2:
+            types = d["anyOf"]
+            null_t = next((t for t in types if t.get("type") == "null"), None)
+            other_t = next((t for t in types if t.get("type") != "null"), None)
+            if null_t and other_t:
+                d.pop("anyOf")
+                d.update(other_t)
+                d["nullable"] = True
+        for v in list(d.values()):
+            _sanitize_nullables(v)
+    elif isinstance(d, list):
+        for item in d:
+            _sanitize_nullables(item)
+
+
+def custom_openapi():
+    """Custom OpenAPI schema generator with auth security schemes."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    
+    openapi_schema = get_openapi(
+        title=settings.app_name,
+        version=settings.app_version,
+        openapi_version="3.0.3",
+        description="Jumapp API with full Swagger UI support for headers, request bodies, and CRUD operations.",
+        routes=app.routes,
+    )
+    
+    _sanitize_nullables(openapi_schema)
+
+    # Configure Security Schemes in OpenAPI Components
+    components = openapi_schema.setdefault("components", {})
+    security_schemes = components.setdefault("securitySchemes", {})
+    
+    security_schemes["SuperAdminToken"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Super-Admin-Token",
+        "description": "Super Admin token for full access (default: dev-super-admin-token)"
+    }
+    security_schemes["MasjidEditorToken"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Masjid-Editor-Token",
+        "description": "Masjid Editor token (pass masjid UUID)"
+    }
+    security_schemes["DevUserToken"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Dev-User-Token",
+        "description": "Dev user authorization token"
+    }
+    security_schemes["HTTPBearer"] = {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Bearer token authorization"
+    }
+    
+    # Attach security globally so Swagger UI displays Authorize button
+    openapi_schema["security"] = [
+        {"SuperAdminToken": []},
+        {"MasjidEditorToken": []},
+        {"DevUserToken": []},
+        {"HTTPBearer": []},
+    ]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = custom_openapi
 
 # CORS middleware
 app.add_middleware(
