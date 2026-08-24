@@ -162,6 +162,7 @@ async def list_masjids(
 
 @masjid_router.get("/{masjid_id}")
 async def get_masjid(
+    request: Request,
     masjid_id: UUID = Path(..., description="Masjid ID"),
     current_user: User = Depends(get_current_user_dependency)
 ) -> dict:
@@ -173,7 +174,7 @@ async def get_masjid(
                 detail="You don't have permission to view masjids"
             )
 
-        masjid_service = get_masjid_service(current_user.db)
+        masjid_service = get_masjid_service(request.state.db)
         masjid = await masjid_service.get_masjid(masjid_id, include_related=True)
         
         if not masjid:
