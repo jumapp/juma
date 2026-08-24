@@ -7,6 +7,8 @@ authorization, and domain rules.
 
 import uuid
 from datetime import datetime, time
+from decimal import Decimal
+from enum import Enum
 from typing import Any, Dict, List, Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -28,6 +30,29 @@ from app.models.photo import MasjidPhoto
 from app.models.audit import AuditEvent, AuditAction
 from app.models.outbox import OutboxEvent
 from app.services.photo_service import get_photo_storage_service
+
+
+def _json_safe(value: Any, key: str | None = None) -> Any:
+    """Convert audit state values to JSON-compatible values."""
+    if key == "location":
+        return None
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, (datetime, time)):
+        return value.isoformat()
+    if isinstance(value, (uuid.UUID, Enum)):
+        return str(value.value if isinstance(value, Enum) else value)
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, dict):
+        return {
+            item_key: _json_safe(item_value, item_key)
+            for item_key, item_value in value.items()
+            if item_key != "location"
+        }
+    if isinstance(value, (list, tuple, set)):
+        return [_json_safe(item) for item in value]
+    return str(value)
 
 
 class BaseService:
@@ -62,8 +87,8 @@ class BaseService:
             action=action,
             entity_type=entity_type,
             entity_id=entity_id,
-            before_state=before_state,
-            after_state=after_state,
+            before_state=_json_safe(before_state),
+            after_state=_json_safe(after_state),
             reason=reason,
             request_id=request_id
         )

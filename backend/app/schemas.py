@@ -1,8 +1,8 @@
 """Pydantic schemas for request validation and OpenAPI documentation."""
 
-from datetime import time, datetime
+from datetime import time
 from typing import Any, Dict, List, Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import BaseModel, Field, ConfigDict
 
@@ -100,12 +100,12 @@ class MasjidCreate(BaseModel):
         False,
         description="Whether easily accessible directly from main road"
     )
-    opens_at: Optional[str] = Field(
+    opens_at: Optional[time] = Field(
         None,
         description="Daily opening time (HH:MM:SS)",
         json_schema_extra={"example": "04:30:00"}
     )
-    closes_at: Optional[str] = Field(
+    closes_at: Optional[time] = Field(
         None,
         description="Daily closing time (HH:MM:SS)",
         json_schema_extra={"example": "22:00:00"}
@@ -173,8 +173,8 @@ class MasjidUpdate(BaseModel):
     accessibility_details: Optional[str] = None
     highway_masjid: Optional[bool] = None
     on_road_masjid: Optional[bool] = None
-    opens_at: Optional[str] = None
-    closes_at: Optional[str] = None
+    opens_at: Optional[time] = None
+    closes_at: Optional[time] = None
     is_24_hours: Optional[bool] = None
     ramadan_adjusted_hours: Optional[Dict[str, Any]] = None
     has_wudu_stations: Optional[bool] = None
@@ -213,17 +213,17 @@ class SalatScheduleCreate(BaseModel):
         description="Name of the salat (fajr, dhuhr, asr, maghrib, isha, jumuah)",
         json_schema_extra={"example": "fajr"}
     )
-    adhan_time: Optional[str] = Field(
+    adhan_time: Optional[time] = Field(
         None,
         description="Adhan time (HH:MM:SS)",
         json_schema_extra={"example": "05:00:00"}
     )
-    iqama_time: str = Field(
+    iqama_time: time = Field(
         ...,
         description="Iqama time (HH:MM:SS)",
         json_schema_extra={"example": "05:30:00"}
     )
-    khutbah_time: Optional[str] = Field(
+    khutbah_time: Optional[time] = Field(
         None,
         description="Khutbah time for Jumuah (HH:MM:SS)",
         json_schema_extra={"example": "13:15:00"}
@@ -242,9 +242,9 @@ class SalatScheduleCreate(BaseModel):
 
 
 class SalatScheduleUpdate(BaseModel):
-    adhan_time: Optional[str] = Field(None, description="Adhan time (HH:MM:SS)")
-    iqama_time: Optional[str] = Field(None, description="Iqama time (HH:MM:SS)")
-    khutbah_time: Optional[str] = Field(None, description="Khutbah time (HH:MM:SS)")
+    adhan_time: Optional[time] = Field(None, description="Adhan time (HH:MM:SS)")
+    iqama_time: Optional[time] = Field(None, description="Iqama time (HH:MM:SS)")
+    khutbah_time: Optional[time] = Field(None, description="Khutbah time (HH:MM:SS)")
 
     model_config = ConfigDict(
         json_schema_extra={
