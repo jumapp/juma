@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Export web build
-        run: npm run frontend:build:web
+        run: npm run build:web
 
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
