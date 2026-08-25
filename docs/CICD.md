@@ -69,10 +69,10 @@ Each pipeline can be run independently, either from the GitHub UI or via npm scr
 ### npm scripts (requires `gh` CLI authenticated to the repo)
 
 ```bash
-npm run deploy:android   # runs deploy-android.yml on master
-npm run deploy:ios       # runs deploy-ios.yml with skip_ios=false
-npm run deploy:pwa       # runs deploy-pwa.yml on master
-npm run deploy:all       # runs release.yml on master (all three pipelines)
+npm run frontend:deploy:android   # runs deploy-android.yml on master
+npm run frontend:deploy:ios       # runs deploy-ios.yml with skip_ios=false
+npm run frontend:deploy:pwa       # runs deploy-pwa.yml on master
+npm run frontend:deploy:all       # runs release.yml on master (all three pipelines)
 ```
 
 > `deploy:ios` passes `-f skip_ios=false`, overriding the default. If you don't have Apple credentials yet, leave the default (`npm run deploy:ios` will still dispatch, but the workflow skips the build — see "iOS skip flag").
@@ -137,10 +137,10 @@ The three status checks map to the job names in `ci-stage.yml`. Any failing chec
 All commands run from the repo root unless noted. The root scripts delegate into `frontend/`.
 
 ```bash
-npm run lint          # ESLint (expo lint)
+npm run frontend:lint          # ESLint (expo lint)
 npm run typecheck     # tsc --noEmit
 npm run test          # Jest unit tests
-npm run build:web     # expo export --platform web (outputs frontend/dist/)
+npm run frontend:build:web     # expo export --platform web (outputs frontend/dist/)
 ```
 
 Directly in `frontend/`:
@@ -150,10 +150,10 @@ cd frontend
 npm run lint
 npm run typecheck
 npm run test
-npm run build:web
+npm run frontend:build:web
 ```
 
-> **Typecheck note:** Expo generates typed-route declarations (`.expo/types/`) during `expo start` / `expo export`. If you see router-type errors in a fresh checkout, run `npm run build:web` once before `npm run typecheck` (the CI `Build web + Typecheck` job does exactly this).
+> **Typecheck note:** Expo generates typed-route declarations (`.expo/types/`) during `expo start` / `expo export`. If you see router-type errors in a fresh checkout, run `npm run frontend:build:web` once before `npm run typecheck` (the CI `Build web + Typecheck` job does exactly this).
 
 ## Local PWA preview
 

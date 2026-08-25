@@ -37,7 +37,7 @@ jobs:
         run: npm ci
 
       - name: Run ESLint
-        run: npm run lint
+        run: npm run frontend:lint
 
   test:
     name: Unit tests
@@ -83,7 +83,7 @@ jobs:
         run: npm ci
 
       - name: Build web export
-        run: npm run build:web
+        run: npm run frontend:build:web
 
       - name: Run TypeScript typecheck
         run: npm run typecheck

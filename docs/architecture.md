@@ -234,9 +234,9 @@ identity secrets, and GCP/Netlify tokens must never be bundled into the client.
         resolve open questions before implementing cross-cutting behavior.
 2. **Implement:** Work in a short-lived branch. Add migrations, API contract
         changes, client states, and focused tests together.
-3. **Validate locally:** Run from the repository root: `npm run lint`,
-        `npm run typecheck`, `npm run test`, and `npm run build:web`. Run backend
-        tests and a local `uvicorn` health check when backend code changes.
+3. **Validate locally:** Run from the repository root: `npm run frontend:lint`,
+         `npm run typecheck`, `npm run test`, and `npm run frontend:build:web`. Run backend
+         tests and a local `uvicorn` health check when backend code changes.
 4. **Review:** Open a pull request. CI must pass lint, unit tests, web build,
         typecheck, API tests, and migration checks. Reviewers verify authorization,
         offline behavior, accessibility, and audit coverage.

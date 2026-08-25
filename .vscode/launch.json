@@ -10,7 +10,8 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "app.main:app"
+                "app.main:app",
+                "--reload",
             ],
             "cwd": "${workspaceFolder}\\backend",
             "python": "${workspaceFolder}\\backend\\.venv\\Scripts\\python.exe"
