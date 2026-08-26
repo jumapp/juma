@@ -187,6 +187,14 @@ All API endpoints use versioned routes (`/api/v1`).
 
 CORS is configured via the `CORS_ORIGINS` environment variable (comma-separated list). Defaults allow local Expo web dev servers.
 
+## Frontend API URL Configuration
+
+The frontend (Expo) uses platform-aware API URL resolution via `lib/config.ts`:
+- **Web**: `EXPO_PUBLIC_API_URL` → `http://localhost:8000`
+- **Mobile**: `EXPO_PUBLIC_API_URL_MOBILE` → ngrok tunnel URL (set by `scripts/start-proxy.js`)
+
+This allows both web and mobile clients to connect to the backend simultaneously without manual `.env` changes.
+
 ## Environment Variables
 
 | Variable | Description | Default |

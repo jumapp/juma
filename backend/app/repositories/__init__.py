@@ -122,16 +122,16 @@ class MasjidRepository(BaseRepository):
         radius: int = 2000
     ) -> List[Masjid]:
         """Get masjids within a radius of the given coordinates."""
-        # Using PostGIS function to calculate distance
-        point = f"ST_SetSRID(ST_MakePoint({lon}, {lat}), 4326)"
+        # Construct the point using GeoAlchemy functions
+        point = func.ST_MakePoint(float(lon), float(lat)).srid = 4326
         query = select(Masjid).where(
             func.ST_DWithin(
                 Masjid.location,
-                func.ST_GeomFromText(point),
+                point,
                 radius
             )
         ).order_by(
-            func.ST_Distance(Masjid.location, func.ST_GeomFromText(point))
+            func.ST_Distance(Masjid.location, point)
         )
         
         result = await self.session.execute(query)
@@ -163,9 +163,9 @@ class MasjidRepository(BaseRepository):
             conditions.append(Masjid.accessible_by_public_transport == accessible_by_transport)
         
         if lat and lon and radius:
-            point = f"ST_SetSRID(ST_MakePoint({lon}, {lat}), 4326)"
+            point = func.ST_MakePoint(float(lon), float(lat)).srid = 4326
             conditions.append(
-                func.ST_DWithin(Masjid.location, func.ST_GeomFromText(point), radius)
+                func.ST_DWithin(Masjid.location, point, radius)
             )
         
         # Handle additional filters

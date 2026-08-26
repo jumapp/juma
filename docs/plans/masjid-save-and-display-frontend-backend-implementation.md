@@ -95,11 +95,16 @@ Implement complete masjid management functionality including data collection, st
    - ✅ Implement admin endpoints (role requests, audit events)
    - ⬜ Create comprehensive API tests (remaining)
 
-3. **Phase 3: Frontend Core (Weeks 5-6) - ⬜ NOT STARTED**
-   - Set up Expo project with existing architecture patterns
-   - Implement theming system and common UI components
-   - Build offline support infrastructure (cache + sync queue)
-   - Create authentication service with role management
+3. **Phase 3: Frontend Core (Weeks 5-6) - 🔄 IN PROGRESS (Detailed in `phase3-frontend-core.md`)**
+   - 3.0: Backend sync prerequisite fixes & tests
+   - 3.1: Scaffolding, config, and environment setup
+   - 3.2: Full design tokens theming system & ThemeProvider
+   - 3.3: i18n localization (EN/HI/UR + RTL)
+   - 3.4: Reusable core UI component kit (~16 components)
+   - 3.5: Typed API client with error normalization and auth injection
+   - 3.6: Dev-mode auth service, session persistence, role switcher & RBAC permissions
+   - 3.7: TanStack Query data layer with offline persistence
+   - 3.8: Offline cache and persistent outbox sync queue
 
 4. **Phase 4: Masjid Form Implementation (Weeks 7-8) - ⬜ NOT STARTED**
    - Implement multi-step form with all 6 steps

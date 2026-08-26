@@ -9,7 +9,7 @@ import uuid
 from datetime import datetime, time
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
@@ -1144,6 +1144,8 @@ class PhotoService(BaseService):
 class SyncService(BaseService):
     """Service for sync and offline support operations."""
 
+    _processed_mutation_ids: Set[str] = set()
+
     async def get_snapshot(
         self,
         cursor: str = None,
@@ -1199,20 +1201,31 @@ class SyncService(BaseService):
         self,
         mutations: List[Dict]
     ) -> List[Dict]:
-        """Process queued mutations and return results."""
+        """Process queued mutations and return results with idempotency."""
         results = []
         
         for mutation in mutations:
+            mut_id = mutation.get("id")
+            if mut_id and mut_id in self._processed_mutation_ids:
+                results.append({
+                    "id": mut_id,
+                    "status": "duplicate",
+                    "result": None
+                })
+                continue
+
             try:
                 result = await self._process_single_mutation(mutation)
+                if mut_id:
+                    self._processed_mutation_ids.add(mut_id)
                 results.append({
-                    "id": mutation.get("id"),
+                    "id": mut_id,
                     "status": "processed",
                     "result": result
                 })
             except Exception as e:
                 results.append({
-                    "id": mutation.get("id"),
+                    "id": mut_id,
                     "status": "failed",
                     "error": str(e)
                 })
@@ -1221,41 +1234,64 @@ class SyncService(BaseService):
         return results
 
     async def _process_single_mutation(self, mutation: Dict) -> Any:
-        """Process a single mutation based on its type."""
-        mutation_type = mutation.get("type")
-        entity_id = mutation.get("id")
+        """Process a single mutation based on its type and entity."""
+        raw_type = (mutation.get("type") or "").upper()
+        entity = (mutation.get("entity") or "").lower()
+        payload = mutation.get("payload") if "payload" in mutation else mutation.get("data", {})
+        if not isinstance(payload, dict):
+            payload = {}
+        payload = {k: v for k, v in payload.items() if not k.startswith("_")}
         
-        if mutation_type == "masjid_create":
-            # Process masjid creation
-            masjid_data = mutation.get("data", {})
-            # Remove metadata fields not in model
-            for key in ["_id", "_source"]:
-                masjid_data.pop(key, None)
-            
-            return await self.masjid_repo.create(Masjid, masjid_data)
+        # Support legacy snake_case type like "masjid_create"
+        if "_" in (mutation.get("type") or ""):
+            parts = mutation["type"].lower().split("_", 1)
+            if not entity:
+                entity = parts[0]
+            raw_type = parts[1].upper()
         
-        elif mutation_type == "masjid_update":
-            # Process masjid update
-            masjid_data = mutation.get("data", {})
-            return await self.masjid_repo.update(
-                Masjid, 
-                uuid.UUID(entity_id), 
-                {k: v for k, v in masjid_data.items() if k != "_id"
-            }
-            )
-        
-        elif mutation_type == "salat_create":
-            # Process salat schedule creation
-            schedule_data = mutation.get("data", {})
-            return await self.salat_repo.create(SalatSchedule, schedule_data)
-        
-        elif mutation_type == "person_create":
-            # Process person creation
-            person_data = mutation.get("data", {})
-            return await self.person_repo.create(MasjidPerson, person_data)
-        
+        entity_id = payload.get("id") or mutation.get("id")
+
+        if entity == "masjid":
+            if raw_type == "CREATE":
+                return await self.masjid_repo.create(Masjid, payload)
+            elif raw_type == "UPDATE":
+                return await self.masjid_repo.update(Masjid, uuid.UUID(str(entity_id)), payload)
+            elif raw_type == "DELETE":
+                return await self.masjid_repo.delete(Masjid, uuid.UUID(str(entity_id)))
+            else:
+                raise ValueError(f"Unknown mutation type {raw_type} for entity {entity}")
+                
+        elif entity in ("salat_schedule", "salat"):
+            if raw_type == "CREATE":
+                return await self.salat_repo.create(SalatSchedule, payload)
+            elif raw_type == "UPDATE":
+                return await self.salat_repo.update(SalatSchedule, uuid.UUID(str(entity_id)), payload)
+            elif raw_type == "DELETE":
+                return await self.salat_repo.delete(SalatSchedule, uuid.UUID(str(entity_id)))
+            else:
+                raise ValueError(f"Unknown mutation type {raw_type} for entity {entity}")
+
+        elif entity == "program":
+            if raw_type == "CREATE":
+                return await self.program_repo.create(MasjidProgram, payload)
+            elif raw_type == "UPDATE":
+                return await self.program_repo.update(MasjidProgram, uuid.UUID(str(entity_id)), payload)
+            elif raw_type == "DELETE":
+                return await self.program_repo.delete(MasjidProgram, uuid.UUID(str(entity_id)))
+            else:
+                raise ValueError(f"Unknown mutation type {raw_type} for entity {entity}")
+
+        elif entity == "person":
+            if raw_type == "CREATE":
+                return await self.person_repo.create(MasjidPerson, payload)
+            elif raw_type == "UPDATE":
+                return await self.person_repo.update(MasjidPerson, uuid.UUID(str(entity_id)), payload)
+            elif raw_type == "DELETE":
+                return await self.person_repo.delete(MasjidPerson, uuid.UUID(str(entity_id)))
+            else:
+                raise ValueError(f"Unknown mutation type {raw_type} for entity {entity}")
         else:
-            raise ValueError(f"Unknown mutation type: {mutation_type}")
+            raise ValueError(f"Unknown entity or mutation: entity={entity}, type={raw_type}")
 
     def _masjid_to_dict(self, masjid: Masjid) -> Dict[str, Any]:
         """Convert a Masjid model to a dictionary."""

@@ -1,0 +1,81 @@
+{
+  "common": {
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "retry": "Retry",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "success": "Success",
+    "offline": "You're offline",
+    "online": "Back online",
+    "last_updated": "Last updated",
+    "language": "Language",
+    "theme": "Theme",
+    "dark_mode": "Dark",
+    "light_mode": "Light",
+    "system_mode": "System",
+    "close": "Close",
+    "all": "All",
+    "none": "None"
+  },
+  "auth": {
+    "role": "Role",
+    "super_admin": "Super Admin",
+    "masjid_editor": "Masjid Editor",
+    "salat_editor": "Salat Editor",
+    "viewer": "Viewer",
+    "select_masjid": "Select Masjid Scope",
+    "switched_role": "Switched to role",
+    "dev_auth_mode": "Developer Role Switcher",
+    "dev_auth_desc": "Switch roles in development mode to test role-based access control.",
+    "current_session": "Current Session"
+  },
+  "home": {
+    "title": "DoonJuma",
+    "subtitle": "Find nearest masjid and salat timings in Dehradun",
+    "next_salat": "Next Salat",
+    "nearby_masjids": "Nearby Masjids",
+    "no_masjids": "No masjids found nearby",
+    "search_placeholder": "Search masjids...",
+    "khutbah": "Khutbah",
+    "iqama": "Iqama",
+    "adhan": "Adhan",
+    "juma_emphasis": "Friday Juma"
+  },
+  "explore": {
+    "title": "Explore Masjids",
+    "search": "Search by name or address",
+    "filter_all": "All",
+    "accessible_transport": "Public Transport",
+    "highway_masjid": "Highway Masjid",
+    "no_results": "No masjids match your search"
+  },
+  "settings": {
+    "title": "Settings",
+    "language_label": "App Language",
+    "theme_label": "Appearance",
+    "role_label": "Active User Role",
+    "about": "About DoonJuma",
+    "version": "Version",
+    "offline_status": "Offline Storage Status",
+    "sync_queue_status": "Sync Queue"
+  },
+  "sync": {
+    "syncing": "Syncing changes...",
+    "synced": "All changes synced",
+    "sync_failed": "Sync failed",
+    "pending_changes": "pending change(s)",
+    "flush_now": "Sync Now",
+    "offline_banner": "You are offline. Showing cached data."
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network connection error. Operating in offline mode.",
+    "not_found": "Resource not found.",
+    "forbidden": "You do not have permission to perform this action.",
+    "unauthorized": "Authentication required."
+  }
+}

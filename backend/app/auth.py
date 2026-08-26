@@ -1,7 +1,18 @@
 """Authentication and authorization service for the Jumapp API.
 
-This module implements the authentication layer using dev mode for development.
-In production, this would be replaced with a proper identity provider integration.
+Role-Based Access Control (RBAC) Matrix - Approved:
+
+Hierarchy: Super Admin > Masjid Editor > Salat Editor > Viewer
+- Permissions cascade downward (higher access includes all lower access)
+- Salat Editor token: X-Salat-Editor-Token: <masjid_id>
+- Masjid Editor token: X-Masjid-Editor-Token: <masjid_id>
+- Viewer token: X-Viewer-Token (read-only)
+
+CREATE operations are BLOCKING for lower roles - only Super Admin
+and Masjid Editor can CREATE; Salat Editor can only READ+UPDATE.
+
+People access updates when permissions are granted via admin role requests.
+Masjid Editor CANNOT delete people - can only revoke/approve requests.
 """
 
 import uuid
@@ -157,8 +168,22 @@ class AuthService:
         return None
 
     def _get_permissions_for_role(self, role: str) -> Dict[str, bool]:
-        """Get permissions for a specific role."""
+        """Get permissions for a specific role per the approved RBAC matrix.
+
+        Matrix:
+        Resource       | Super Admin | Masjid Editor          | Salat Editor      | Viewer
+        ---------------|-------------|------------------------|-------------------|--------
+        Masjids        | CRUD all    | CRU own masjid_id      | R only (inherited)| R all
+        Salat Schedules| CRUD all    | CRU own masjid_id      | RU own masjid_id  | R all
+        Programs       | CRUD all    | CRUD own masjid_id     | R only (inherited)| R all
+        People         | CRUD all    | CRU own masjid_id      | R only (inherited)| R all
+        Photos         | C/D all     | C/D own masjid_id      | ❌                | ❌
+        Sync           | RW all      | ❌                      | ❌                | ❌
+        Admin          | RW all      | R/Approve own masjid_id| ❌                | ❌
+        Audit Events   | R all       | ❌                      | ❌                | ❌
+        """
         if role == "super_admin":
+            # Full access to all resources
             return {
                 "masjid:read": True,
                 "masjid:create": True,
@@ -183,18 +208,22 @@ class AuthService:
                 "sync:write": True,
                 "admin:read": True,
                 "admin:approve": True,
+                "audit:read": True,
             }
 
         if role == "masjid_editor":
+            # CRU on Masjid (own), CRU on Salat (own), CRUD on Programs (own),
+            # CRU on People (own, no delete), C/D Photos (own),
+            # R/Approve admin role requests for own masjid
             return {
                 "masjid:read": True,
                 "masjid:create": True,
                 "masjid:update": True,
-                "masjid:delete": True,
+                "masjid:delete": False,
                 "salat:read": True,
                 "salat:create": True,
                 "salat:update": True,
-                "salat:delete": True,
+                "salat:delete": False,
                 "program:read": True,
                 "program:create": True,
                 "program:update": True,
@@ -202,17 +231,20 @@ class AuthService:
                 "person:read": True,
                 "person:create": True,
                 "person:update": True,
-                "person:delete": True,
+                "person:delete": False,
                 "photo:read": True,
                 "photo:create": True,
                 "photo:delete": True,
-                "sync:read": True,
-                "sync:write": True,
-                "admin:read": False,
-                "admin:approve": False,
+                "sync:read": False,
+                "sync:write": False,
+                "admin:read": True,
+                "admin:approve": True,
+                "audit:read": False,
             }
 
         if role == "salat_editor":
+            # R only on Masjid/Program/Person (inherited from Viewer),
+            # RU on Salat Schedules (own masjid_id)
             return {
                 "masjid:read": True,
                 "masjid:create": False,
@@ -233,13 +265,14 @@ class AuthService:
                 "photo:read": True,
                 "photo:create": False,
                 "photo:delete": False,
-                "sync:read": True,
+                "sync:read": False,
                 "sync:write": False,
                 "admin:read": False,
                 "admin:approve": False,
+                "audit:read": False,
             }
 
-        # Default role: Viewer
+        # Default role: Viewer - Read-only on all public resources
         return {
             "masjid:read": True,
             "masjid:create": False,
@@ -260,10 +293,11 @@ class AuthService:
             "photo:read": True,
             "photo:create": False,
             "photo:delete": False,
-            "sync:read": True,
+            "sync:read": False,
             "sync:write": False,
             "admin:read": False,
             "admin:approve": False,
+            "audit:read": False,
         }
 
     async def get_current_user(

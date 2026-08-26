@@ -1,6 +1,10 @@
 # Jumapp
 
-A cross-platform mobile/web app built with **Expo SDK 54** (React Native) and a **FastAPI** backend.
+Jumapp helps users find the nearest masjid to offer salat at any given time. A cross-platform mobile/web app built with **Expo SDK 54** (React Native) and a **FastAPI** backend.
+
+## Project Concept
+
+Jumapp is a location-aware masjid finder. It helps users locate the nearest masjid for prayer times, view schedules, programs, and community information. See [docs/idea.md](docs/idea.md) for the full concept.
 
 ## Project Structure
 
@@ -8,8 +12,23 @@ A cross-platform mobile/web app built with **Expo SDK 54** (React Native) and a 
 jumapp/
 ├── frontend/     # Expo React Native app (iOS / Android / Web / PWA)
 ├── backend/      # FastAPI Python backend
-└── docs/         # Project documentation
+├── docs/         # Project documentation
+├── skills/       # OpenCode skill workflows
+└── AGENTS.md     # Project rules for AI agents
 ```
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Mobile | React Native (Expo SDK 54) |
+| Web | React Native Web / PWA |
+| Backend | FastAPI (Python) |
+| Routing | Expo Router (file-based) |
+| Database | PostgreSQL 16+ with PostGIS |
+| ORM | SQLAlchemy 2.0 (async) |
+| Auth | Token-based (dev), OIDC (prod planned) |
+| Storage | Local filesystem / GCS |
 
 ## Quick Start
 
@@ -63,6 +82,63 @@ npm run backend         # Start FastAPI dev server
 - Display components
 - Integration testing
 - Production deployment
+
+## Backend Setup
+
+### Prerequisites
+- Python 3.12+
+- PostgreSQL 16+ with PostGIS extension
+- (Optional) GCS bucket for photo storage
+
+### Environment Variables
+
+Copy `backend/.env.example` to `backend/.env` and configure:
+
+```bash
+cd backend
+cp .env.example .env
+# Edit .env with your values
+```
+
+Key variables:
+- `DATABASE_URL` - PostgreSQL connection string
+- `AUTH_MODE` - Set to `dev` (only supported mode currently)
+- `SUPER_ADMIN_TOKEN` - Token for super admin access
+- `GCS_BUCKET` - Google Cloud Storage bucket (optional)
+- `DB_AUTO_CREATE` - Set to `true` to auto-create tables on startup
+
+### Database Setup
+
+The database is initialized automatically when `DB_AUTO_CREATE=true` on application startup via `init_db.py`. This replaces Alembic migrations for better control.
+
+> **PostGIS required:** The app uses the PostGIS extension for spatial queries. It must be installed on the PostgreSQL server itself before `init_db.py` runs `CREATE EXTENSION postgis`. See [PostGIS Installation](backend/README.md#postgis-installation) for platform-specific setup (Windows, macOS, Linux, Docker, managed cloud).
+
+### Running the Backend
+
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+API docs available at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+### Health Checks
+
+- Basic: `GET /health`
+- Full (with DB): `GET /health/full`
+
+## Authentication
+
+Currently uses a dev-mode token system:
+
+1. **Super Admin**: Use header `X-Super-Admin-Token: dev-super-admin-token`
+2. **Masjid Editor**: Use header `X-Masjid-Editor-Token: <masjid_id>`
+3. **Viewer**: No token required (read-only)
+
+Production will integrate with a proper identity provider.
 
 ## Backend API Reference
 
@@ -123,81 +199,28 @@ Base URL: `http://localhost:8000/api/v1`
 | PATCH | `/admin/role-requests/{id}` | Update role request |
 | GET | `/admin/audit-events` | List audit events |
 
-## Backend Setup
+## Cross-Platform, Offline & PWA
 
-### Prerequisites
-- Python 3.12+
-- PostgreSQL 16+ with PostGIS extension
-- (Optional) GCS bucket for photo storage
+- **iOS / Android / Web:** All code must work on all three platforms. Use `Platform.OS` guards for platform-specific behavior. Never import web-only APIs (e.g. `window`, `document`, service workers) without a `Platform.OS === 'web'` check.
+- **Offline Support:** The app must work offline on all platforms. Web uses service worker + CacheStorage for app shell and assets. Native uses AsyncStorage / expo-file-system for data persistence. Always provide offline fallbacks for network-dependent features.
+- **PWA:** Use `public/manifest.json` for the PWA manifest and `app/+html.tsx` to link it (static rendering). Keep `public/manifest.json` and `public/service-worker.js` in sync with `app.json`. Service worker must use Cache-First for static assets and Network-First for API data.
 
-### Environment Variables
+> **Note:** These rules are summarized for quick reference. The authoritative source is `AGENTS.md` — read it before making code changes.
 
-Copy `backend/.env.example` to `backend/.env` and configure:
+## Documentation Index
 
-```bash
-cd backend
-cp .env.example .env
-# Edit .env with your values
-```
-
-Key variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `AUTH_MODE` - Set to `dev` (only supported mode currently)
-- `SUPER_ADMIN_TOKEN` - Token for super admin access
-- `GCS_BUCKET` - Google Cloud Storage bucket (optional)
-- `DB_AUTO_CREATE` - Set to `true` to auto-create tables on startup
-
-### Database Setup
-
-The database is initialized automatically when `DB_AUTO_CREATE=true` on application startup via `init_db.py`. This replaces Alembic migrations for better control.
-
-> **PostGIS required:** The app uses the PostGIS extension for spatial queries. It must be installed on the PostgreSQL server itself before `init_db.py` runs `CREATE EXTENSION postgis`. See [PostGIS Installation](backend/README.md#postgis-installation) for platform-specific setup (Windows, macOS, Linux, Docker, managed cloud).
-
-### Running the Backend
-
-```bash
-cd backend
-source .venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-API docs available at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
-
-### Health Checks
-
-- Basic: `GET /health`
-- Full (with DB): `GET /health/full`
-
-## Authentication
-
-Currently uses a dev-mode token system:
-
-1. **Super Admin**: Use header `X-Super-Admin-Token: dev-super-admin-token`
-2. **Masjid Editor**: Use header `X-Masjid-Editor-Token: <masjid_id>`
-3. **Viewer**: No token required (read-only)
-
-Production will integrate with a proper identity provider.
-
-## Documentation
-
+- [Project Idea](docs/idea.md)
+- [User Journey](docs/user-journey.md)
+- [Architecture](docs/architecture.md)
+- [API Reference](docs/api.md)
+- [CI/CD](docs/CICD.md)
 - [Implementation Plan](docs/plans/masjid-save-and-display-frontend-backend-implementation.md)
-- [OpenAPI Spec](docs/api/openapi.json) - *Coming soon*
-- Architecture docs: `docs/`
+- [OpenAPI Spec](docs/api/openapi.json) — *Coming soon*
+- [Backend Docs](backend/README.md)
 
-## Tech Stack
+## For AI Agents
 
-| Layer | Technology |
-|-------|------------|
-| Mobile | React Native (Expo SDK 54) |
-| Web | React Native Web / PWA |
-| Backend | FastAPI (Python) |
-| Routing | Expo Router (file-based) |
-| Database | PostgreSQL 16+ with PostGIS |
-| ORM | SQLAlchemy 2.0 (async) |
-| Auth | Token-based (dev), OIDC (prod planned) |
-| Storage | Local filesystem / GCS |
+Before starting work on this project, read `/AGENTS.md` for project rules, skill workflows, and platform conventions. This README provides the project overview, structure, setup instructions, and API reference.
 
 ## License
 

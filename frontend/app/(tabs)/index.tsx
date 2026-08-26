@@ -1,98 +1,117 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import React from "react";
+import { StyleSheet, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useMasjids } from "@/hooks/queries/use-masjids";
+import { useTheme } from "@/providers/theme-provider";
+import { Screen, Text, Card, ListItem, Skeleton, EmptyState, Badge } from "@/components/ui";
+import { config } from "@/lib/config";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Juma App!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx file</ThemedText> to see new changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { t } = useTranslation();
+  const { spacing } = useTheme();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Fetch nearby masjids using default Dehradun coordinates
+  const { data: masjids, isLoading, isError, error } = useMasjids({
+    radius: config.defaultRadiusMeters,
+  });
+
+  if (isLoading) {
+    return (
+      <Screen scrollable contentContainerStyle={styles.container}>
+        <Text variant="h1" color="primary" style={styles.title}>
+          {t("home.title")}
+        </Text>
+        <Text variant="body" color="secondary" style={styles.subtitle}>
+          {t("home.subtitle")}
+        </Text>
+
+        <Text variant="h3" color="primary" style={[styles.sectionTitle, { marginTop: spacing.xl }]}>
+          {t("home.nearby_masjids")}
+        </Text>
+
+        <View style={styles.skeletonContainer}>
+          <Skeleton height={60} style={styles.skeletonItem} />
+          <Skeleton height={60} style={styles.skeletonItem} />
+          <Skeleton height={60} style={styles.skeletonItem} />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (isError) {
+    return (
+      <Screen scrollable contentContainerStyle={styles.container}>
+        <EmptyState
+          title={t("errors.generic")}
+          description={error?.message || t("errors.network")}
+        />
+      </Screen>
+    );
+  }
+
+  return (
+    <Screen scrollable contentContainerStyle={styles.container}>
+      <Text variant="h1" color="primary" style={styles.title}>
+        {t("home.title")}
+      </Text>
+      <Text variant="body" color="secondary" style={styles.subtitle}>
+        {t("home.subtitle")}
+      </Text>
+
+      <Text variant="h3" color="primary" style={[styles.sectionTitle, { marginTop: spacing.xl }]}>
+        {t("home.nearby_masjids")}
+      </Text>
+
+      {masjids && masjids.length > 0 ? (
+        <Card variant="elevated" style={styles.card}>
+          {masjids.map((masjid) => (
+            <ListItem
+              key={masjid.id}
+              title={masjid.name}
+              subtitle={`${masjid.city}, ${masjid.state}`}
+              onPress={() => { /* TODO: navigate to masjid detail */ }}
+              right={
+                masjid.distance_meters !== undefined ? (
+                  <Badge
+                    label={`${Math.round(masjid.distance_meters)}m`}
+                    variant="neutral"
+                  />
+                ) : null
+              }
+            />
+          ))}
+        </Card>
+      ) : (
+        <EmptyState
+          title={t("home.no_masjids")}
+          description={t("explore.no_results")}
+        />
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    padding: 16,
   },
-  stepContainer: {
-    gap: 8,
+  title: {
+    marginBottom: 4,
+  },
+  subtitle: {
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  sectionTitle: {
+    marginBottom: 12,
+  },
+  card: {
+    marginTop: 8,
+  },
+  skeletonContainer: {
+    gap: 8,
+    marginTop: 8,
+  },
+  skeletonItem: {
+    width: "100%",
   },
 });
