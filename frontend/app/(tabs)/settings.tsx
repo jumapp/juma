@@ -1,11 +1,11 @@
-import React from "react";
-import { StyleSheet, View } from "react-native";
-import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/hooks/use-language";
-import { useTheme } from "@/providers/theme-provider";
-import { Screen, Text, Card, Switch, Chip, Divider } from "@/components/ui";
 import { RoleSwitcher } from "@/components/role-switcher";
 import { SyncStatusIndicator } from "@/components/sync-status-indicator";
+import { Card, Chip, Divider, Screen, Switch, Text } from "@/components/ui";
+import { useLanguage } from "@/hooks/use-language";
+import { useTheme } from "@/providers/theme-provider";
+import React from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -46,7 +46,7 @@ export default function SettingsScreen() {
         </Text>
         <View style={styles.switchRow}>
           <Text variant="body" color="primary">
-            {t("settings.system_mode")}
+            {t("common.system_mode")}
           </Text>
           <Switch
             value={themePreference === "system"}
@@ -56,7 +56,7 @@ export default function SettingsScreen() {
         <Divider />
         <View style={styles.switchRow}>
           <Text variant="body" color="primary">
-            {t("settings.light_mode")}
+            {t("common.light_mode")}
           </Text>
           <Switch
             value={themePreference === "light"}
@@ -66,7 +66,7 @@ export default function SettingsScreen() {
         <Divider />
         <View style={styles.switchRow}>
           <Text variant="body" color="primary">
-            {t("settings.dark_mode")}
+            {t("common.dark_mode")}
           </Text>
           <Switch
             value={themePreference === "dark"}
