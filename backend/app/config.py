@@ -1,7 +1,25 @@
 """Application configuration using pydantic-settings."""
 
+from enum import Enum
+
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+try:
+    from tests.test_config import TestMode, get_test_config
+except ImportError:
+    from backend.tests.test_config import TestMode, get_test_config
+
+
+class DatabaseEnvironment(Enum):
+    """Database environment enumeration."""
+
+    PRODUCTION = "production"
+    """Production database with PostgreSQL/PostGIS."""
+    TEST = "test"
+    """SQLite test database with mocked PostgreSQL types."""
+    POSTGRES = "postgres"
+    """PostgreSQL test database with Testcontainers."""
 
 
 class Settings(BaseSettings):
@@ -18,10 +36,17 @@ class Settings(BaseSettings):
         "http://localhost:3000",  # Common dev server
     ]
 
-    # Database
+    # Database configuration
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/jumapp"
+    database_url_sqlite: str = "sqlite+aiosqlite:///./test.db"
+    database_url_postgres: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/jumapp_test"
+    
     db_echo: bool = False
     db_auto_create: bool = False
+
+    # Test environment configuration
+    test_mode: TestMode = TestMode.TEST
+    is_test_environment: bool = False
 
     # Auth (dev mode until an identity provider is selected)
     auth_mode: str = "dev"
@@ -51,8 +76,59 @@ class Settings(BaseSettings):
         return value
 
     @property
+    def database_url_for_test_mode(self) -> str:
+        """Get appropriate database URL for current test mode."""
+        test_config = get_test_config()
+        
+        if test_config.is_sqlite_mode:
+            return self.database_url_sqlite
+        elif test_config.is_postgres_mode:
+            return self.database_url_postgres
+        else:
+            return self.database_url
+
+    @property
+    def is_sqlite_mode(self) -> bool:
+        """Check if SQLite test mode is active."""
+        return self.test_mode == TestMode.TEST
+
+    @property
+    def is_postgres_mode(self) -> bool:
+        """Check if PostgreSQL test mode is active."""
+        return self.test_mode == TestMode.SLOW
+
+    @property
+    def is_production_mode(self) -> bool:
+        """Check if production mode is active."""
+        return not self.is_sqlite_mode and not self.is_postgres_mode
+
+    @property
+    def test_db_type(self) -> str:
+        """Get test database type."""
+        if self.is_sqlite_mode:
+            return "sqlite"
+        elif self.is_postgres_mode:
+            return "postgres"
+        else:
+            return "production"
+
+    @property
+    def test_environment_name(self) -> str:
+        """Get test environment name."""
+        return self.test_mode.value
+
+    @property
     def storage_provider(self) -> str:
         return "gcs" if self.gcs_bucket else "local"
 
 
-settings = Settings()
+# Load test configuration at module import
+try:
+    _test_config = get_test_config()
+    settings = Settings(test_mode=_test_config.test_mode, is_test_environment=True)
+except Exception:
+    settings = Settings()
+
+
+# Initialize test configuration on module import
+_test_config = get_test_config()

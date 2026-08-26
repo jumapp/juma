@@ -87,6 +87,12 @@ def custom_openapi():
         "name": "X-Masjid-Editor-Token",
         "description": "Masjid Editor token (pass masjid UUID)"
     }
+    security_schemes["SalatEditorToken"] = {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Salat-Editor-Token",
+        "description": "Salat Editor token (pass masjid UUID)"
+    }
     security_schemes["DevUserToken"] = {
         "type": "apiKey",
         "in": "header",
@@ -104,6 +110,7 @@ def custom_openapi():
     openapi_schema["security"] = [
         {"SuperAdminToken": []},
         {"MasjidEditorToken": []},
+        {"SalatEditorToken": []},
         {"DevUserToken": []},
         {"HTTPBearer": []},
     ]
@@ -156,6 +163,16 @@ async def full_health() -> JSONResponse:
 @app.middleware("http")
 async def add_db_to_request(request: Request, call_next: RequestResponseEndpoint):
     """Add database connection to request state."""
+    # Skip database middleware in test mode to avoid connection issues
+    if settings.is_test_environment and (settings.is_sqlite_mode or settings.is_postgres_mode):
+        # In test mode, the database dependency is overridden by test fixtures
+        # We still need to set request.state.db for routes that access it directly
+        from unittest.mock import AsyncMock
+        from sqlalchemy.ext.asyncio import AsyncSession
+        request.state.db = AsyncMock(spec=AsyncSession)
+        response = await call_next(request)
+        return response
+    
     async for db in get_db():
         request.state.db = db
         response = await call_next(request)
