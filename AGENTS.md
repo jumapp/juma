@@ -4,9 +4,9 @@
 
 Before starting work, read `/README.md` for project overview, structure, setup, API, and conventions. Then follow the rules below.
 
-## OpenCode Integration
+## Use available skills 
 
-OpenCode uses a **skill-driven execution model** powered by the `skill` tool and this repository's `/skills` directory.
+Use **skill-driven execution model** powered by the `skill` tool and this repository's `/skills` directory.
 
 ### Core Rules
 
