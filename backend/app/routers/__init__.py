@@ -1270,6 +1270,11 @@ async def get_sync_snapshot(
 ) -> dict:
     """Get a sync snapshot or delta."""
     try:
+        if not current_user.has_permission("sync:read"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have permission to get sync snapshot"
+            )
         sync_service = get_sync_service(request.state.db)
         snapshot = await sync_service.get_snapshot(
             cursor=cursor,
@@ -1277,6 +1282,8 @@ async def get_sync_snapshot(
         )
         
         return snapshot
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1310,6 +1317,8 @@ async def sync_mutations(
             "failed": len([r for r in results if r["status"] == "failed"]),
             "results": results
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1336,6 +1345,8 @@ async def list_role_requests(
         
         # Note: Role request functionality would need to be implemented
         return []
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1361,6 +1372,8 @@ async def update_role_request(
         
         # Note: Role request update functionality would need to be implemented
         return {"id": str(role_request_id), "status": "updated"}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -1383,6 +1396,8 @@ async def list_audit_events(
         
         # Note: Audit event listing functionality would need to be implemented
         return []
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
