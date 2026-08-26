@@ -41,28 +41,28 @@ let urlFound = false;
 ngrok.stdout.on('data', (data) => {
   const output = data.toString();
   
-  // Look for the URL in ngrok output
-  const urlMatch = output.match(/https?:\/\/[a-zA-Z0-9\-]+\.ngrok\.io/);
+  // Look for the URL in ngrok output - flexible regex for ngrok domains
+  const urlMatch = output.match(/https?:\/\/[a-zA-Z0-9\-]+\.(?:ngrok\.io|ngrok-free\.app)/);
   if (urlMatch && !urlFound) {
     urlFound = true;
     ngrokUrl = urlMatch[0];
     
     console.log(`✅ Ngrok tunnel established: ${ngrokUrl}`);
     
-    // Update .env file
+    // Update .env file - set EXPO_PUBLIC_API_URL_MOBILE, preserve web localhost URL
     let newEnvContent = envContent.replace(
-      /EXPO_PUBLIC_API_URL=.*/,
-      `EXPO_PUBLIC_API_URL=${ngrokUrl}`
+      /EXPO_PUBLIC_API_URL_MOBILE=.*/,
+      `EXPO_PUBLIC_API_URL_MOBILE=${ngrokUrl}`
     );
     
-    // If EXPO_PUBLIC_API_URL doesn't exist, add it
-    if (!envContent.includes('EXPO_PUBLIC_API_URL=')) {
-      newEnvContent = `EXPO_PUBLIC_API_URL=${ngrokUrl}\n${envContent}`;
+    // If EXPO_PUBLIC_API_URL_MOBILE doesn't exist, add it
+    if (!envContent.includes('EXPO_PUBLIC_API_URL_MOBILE=')) {
+      newEnvContent = `EXPO_PUBLIC_API_URL_MOBILE=${ngrokUrl}\n${envContent}`;
     }
     
     fs.writeFileSync(envPath, newEnvContent);
-    console.log(`📝 Updated ${envPath} with new API URL`);
-    console.log('🚀 Ready to start Expo! Run: expo start');
+    console.log(`📝 Updated ${envPath} with mobile API URL (EXPO_PUBLIC_API_URL_MOBILE)`);
+    console.log('🚀 Ready to start Expo for mobile! Run: expo start');
   }
 });
 
@@ -70,24 +70,24 @@ ngrok.stderr.on('data', (data) => {
   const output = data.toString();
   // Also check stderr for URL (ngrok sometimes outputs there)
   if (!urlFound) {
-    const urlMatch = output.match(/https?:\/\/[a-zA-Z0-9\-]+\.ngrok\.io/);
+    const urlMatch = output.match(/https?:\/\/[a-zA-Z0-9\-]+\.(?:ngrok\.io|ngrok-free\.app)/);
     if (urlMatch) {
       urlFound = true;
       ngrokUrl = urlMatch[0];
       console.log(`✅ Ngrok tunnel established: ${ngrokUrl}`);
       
       let newEnvContent = envContent.replace(
-        /EXPO_PUBLIC_API_URL=.*/,
-        `EXPO_PUBLIC_API_URL=${ngrokUrl}`
+        /EXPO_PUBLIC_API_URL_MOBILE=.*/,
+        `EXPO_PUBLIC_API_URL_MOBILE=${ngrokUrl}`
       );
       
-      if (!envContent.includes('EXPO_PUBLIC_API_URL=')) {
-        newEnvContent = `EXPO_PUBLIC_API_URL=${ngrokUrl}\n${envContent}`;
+      if (!envContent.includes('EXPO_PUBLIC_API_URL_MOBILE=')) {
+        newEnvContent = `EXPO_PUBLIC_API_URL_MOBILE=${ngrokUrl}\n${envContent}`;
       }
       
       fs.writeFileSync(envPath, newEnvContent);
-      console.log(`📝 Updated ${envPath} with new API URL`);
-      console.log('🚀 Ready to start Expo! Run: expo start');
+      console.log(`📝 Updated ${envPath} with mobile API URL (EXPO_PUBLIC_API_URL_MOBILE)`);
+      console.log('🚀 Ready to start Expo for mobile! Run: expo start');
     }
   }
 });
