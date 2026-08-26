@@ -12,8 +12,6 @@ export default function HomeScreen() {
 
   // Fetch nearby masjids using default Dehradun coordinates
   const { data: masjids, isLoading, isError, error } = useMasjids({
-    lat: config.defaultCoordinates.latitude,
-    lon: config.defaultCoordinates.longitude,
     radius: config.defaultRadiusMeters,
   });
 
