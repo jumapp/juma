@@ -103,7 +103,7 @@ async def client(mock_db: AsyncMock) -> AsyncGenerator[AsyncClient, None]:
     app.dependency_overrides[get_db] = lambda: mock_db
     
     # Mock the services to avoid actual database calls
-    # Patch where the services are DEFINED (app.services), not where they're imported (app.routers)
+    # Patch where the services are DEFINED (app.services), since routers access them via app.services.*
     with patch("app.services.get_masjid_service") as mock_masjid_svc, \
          patch("app.services.get_salat_service") as mock_salat_svc, \
          patch("app.services.get_program_service") as mock_program_svc, \
@@ -111,12 +111,27 @@ async def client(mock_db: AsyncMock) -> AsyncGenerator[AsyncClient, None]:
          patch("app.services.get_photo_service") as mock_photo_svc, \
          patch("app.services.get_sync_service") as mock_sync_svc:
         
-        # Make the mocks return AsyncMock service instances with sensible return values
+# Make the mocks return AsyncMock service instances with sensible return values
         mock_masjid_instance = AsyncMock()
         mock_masjid_instance.get_by_id.return_value = None
         mock_masjid_instance.list_masjids.return_value = []
-        mock_masjid_instance.create_masjid.return_value = {"id": TEST_MASJID_ID, **SAMPLE_MASJID_DATA}
-        mock_masjid_instance.update_masjid.return_value = {"id": TEST_MASJID_ID, **SAMPLE_MASJID_DATA}
+        # Return an object with all attributes the router response expects
+        created_masjid = AsyncMock()
+        created_masjid.id = TEST_MASJID_ID
+        created_masjid.name = SAMPLE_MASJID_DATA["name"]
+        created_masjid.address_line1 = SAMPLE_MASJID_DATA["address_line1"]
+        created_masjid.address_line2 = None
+        created_masjid.city = SAMPLE_MASJID_DATA["city"]
+        created_masjid.state = SAMPLE_MASJID_DATA["state"]
+        created_masjid.postal_code = None
+        created_masjid.country = SAMPLE_MASJID_DATA["country"]
+        created_masjid.latitude = SAMPLE_MASJID_DATA["latitude"]
+        created_masjid.longitude = SAMPLE_MASJID_DATA["longitude"]
+        created_masjid.timezone = SAMPLE_MASJID_DATA["timezone"]
+        created_masjid.created_at = None
+        created_masjid.updated_at = None
+        mock_masjid_instance.create_masjid.return_value = created_masjid
+        mock_masjid_instance.update_masjid.return_value = created_masjid
         mock_masjid_instance.delete_masjid.return_value = True
         mock_masjid_svc.return_value = mock_masjid_instance
 

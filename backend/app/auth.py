@@ -217,7 +217,7 @@ class AuthService:
             # R/Approve admin role requests for own masjid
             return {
                 "masjid:read": True,
-                "masjid:create": True,
+                "masjid:create": False,
                 "masjid:update": True,
                 "masjid:delete": False,
                 "salat:read": True,

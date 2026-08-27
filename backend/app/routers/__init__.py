@@ -12,10 +12,7 @@ from fastapi import APIRouter, Body, Depends, Header, HTTPException, Path, Query
 from fastapi.responses import JSONResponse
 
 from app.auth import get_current_user_dependency, User
-from app.services import (
-    get_masjid_service, get_salat_service, get_person_service,
-    get_program_service, get_photo_service, get_sync_service
-)
+import app.services
 from app.enums import (
     SalatName, AccessLevel, PersonRole, ProgramType, 
     ScheduleFrequency, PhotoModerationStatus
@@ -54,7 +51,7 @@ async def list_masjids(
                 detail="You don't have permission to view masjids"
             )
 
-        masjid_service = get_masjid_service(request.state.db)
+        masjid_service = app.services.get_masjid_service(request.state.db)
         masjids = await masjid_service.list_masjids(
             lat=lat,
             lon=lon,
@@ -174,7 +171,7 @@ async def get_masjid(
                 detail="You don't have permission to view masjids"
             )
 
-        masjid_service = get_masjid_service(request.state.db)
+        masjid_service = app.services.get_masjid_service(request.state.db)
         masjid = await masjid_service.get_masjid(masjid_id, include_related=True)
         
         if not masjid:
@@ -277,7 +274,7 @@ async def get_masjid(
         )
 
 
-@masjid_router.post("/", response_model=MasjidResponse)
+@masjid_router.post("/", response_model=MasjidResponse, status_code=status.HTTP_201_CREATED)
 async def create_masjid(
     request: Request,
     data: MasjidCreate,
@@ -294,7 +291,7 @@ async def create_masjid(
             )
         
         masjid_dict = data.model_dump()
-        masjid_service = get_masjid_service(request.state.db)
+        masjid_service = app.services.get_masjid_service(request.state.db)
         masjid = await masjid_service.create_masjid(
             data=masjid_dict,
             user_id=current_user.id,
@@ -342,7 +339,7 @@ async def update_masjid(
             )
         
         update_dict = data.model_dump(exclude_unset=True)
-        masjid_service = get_masjid_service(request.state.db)
+        masjid_service = app.services.get_masjid_service(request.state.db)
         masjid = await masjid_service.update_masjid(
             masjid_id=masjid_id,
             data=update_dict,
@@ -395,7 +392,7 @@ async def delete_masjid(
                 detail="You don't have permission to delete this masjid"
             )
         
-        masjid_service = get_masjid_service(request.state.db)
+        masjid_service = app.services.get_masjid_service(request.state.db)
         success = await masjid_service.delete_masjid(
             masjid_id=masjid_id,
             user_id=current_user.id,
@@ -437,7 +434,7 @@ async def list_schedules(
                 detail="You don't have permission to view salat schedules"
             )
 
-        salat_service = get_salat_service(request.state.db)
+        salat_service = app.services.get_salat_service(request.state.db)
         
         if masjid_id:
             schedules = await salat_service.get_by_masjid(masjid_id)
@@ -482,7 +479,7 @@ async def get_schedule(
                 detail="You don't have permission to view salat schedules"
             )
 
-        salat_service = get_salat_service(current_user.db)
+        salat_service = app.services.get_salat_service(current_user.db)
         schedule = await salat_service.get_schedule(schedule_id)
         
         if not schedule:
@@ -531,7 +528,7 @@ async def create_schedule(
         if isinstance(schedule_dict.get("salat_name"), SalatName):
             schedule_dict["salat_name"] = data.salat_name.value
         
-        salat_service = get_salat_service(request.state.db)
+        salat_service = app.services.get_salat_service(request.state.db)
         schedule = await salat_service.create_schedule(
             masjid_id=data.masjid_id,
             data=schedule_dict,
@@ -567,7 +564,7 @@ async def update_schedule(
 ) -> dict:
     """Update an existing salat schedule."""
     try:
-        salat_service = get_salat_service(request.state.db)
+        salat_service = app.services.get_salat_service(request.state.db)
         existing_schedule = await salat_service.get_schedule(schedule_id)
         if not existing_schedule:
             raise HTTPException(
@@ -617,7 +614,7 @@ async def delete_schedule(
 ) -> dict:
     """Delete a salat schedule."""
     try:
-        salat_service = get_salat_service(request.state.db)
+        salat_service = app.services.get_salat_service(request.state.db)
         existing_schedule = await salat_service.get_schedule(schedule_id)
         if not existing_schedule:
             raise HTTPException(
@@ -678,7 +675,7 @@ async def list_programs(
                 detail="You don't have permission to view programs"
             )
 
-        program_service = get_program_service(request.state.db)
+        program_service = app.services.get_program_service(request.state.db)
         
         if masjid_id:
             programs = await program_service.get_programs_by_masjid(masjid_id, program_type)
@@ -723,7 +720,7 @@ async def get_program(
                 detail="You don't have permission to view programs"
             )
 
-        program_service = get_program_service(current_user.db)
+        program_service = app.services.get_program_service(current_user.db)
         program = await program_service.get_program(program_id)
         
         if not program:
@@ -773,7 +770,7 @@ async def create_program(
         if isinstance(program_dict.get("type"), ProgramType):
             program_dict["type"] = data.type.value
         
-        program_service = get_program_service(request.state.db)
+        program_service = app.services.get_program_service(request.state.db)
         program = await program_service.create_program(
             masjid_id=data.masjid_id,
             data=program_dict,
@@ -810,7 +807,7 @@ async def update_program(
 ) -> dict:
     """Update an existing program."""
     try:
-        program_service = get_program_service(request.state.db)
+        program_service = app.services.get_program_service(request.state.db)
         existing_program = await program_service.get_program(program_id)
         if not existing_program:
             raise HTTPException(
@@ -861,7 +858,7 @@ async def delete_program(
 ) -> dict:
     """Delete a program."""
     try:
-        program_service = get_program_service(request.state.db)
+        program_service = app.services.get_program_service(request.state.db)
         existing_program = await program_service.get_program(program_id)
         if not existing_program:
             raise HTTPException(
@@ -919,7 +916,7 @@ async def list_people(
                 detail="You don't have permission to view people"
             )
 
-        person_service = get_person_service(request.state.db)
+        person_service = app.services.get_person_service(request.state.db)
         
         if masjid_id:
             people = await person_service.get_persons_by_masjid(
@@ -969,7 +966,7 @@ async def get_person(
                 detail="You don't have permission to view people"
             )
 
-        person_service = get_person_service(current_user.db)
+        person_service = app.services.get_person_service(current_user.db)
         person = await person_service.get_person(person_id)
         
         if not person:
@@ -1026,7 +1023,7 @@ async def create_person(
         if isinstance(person_dict.get("access_level"), AccessLevel):
             person_dict["access_level"] = data.access_level.value
 
-        person_service = get_person_service(request.state.db)
+        person_service = app.services.get_person_service(request.state.db)
         person = await person_service.create_person(
             masjid_id=data.masjid_id,
             data=person_dict,
@@ -1068,7 +1065,7 @@ async def update_person(
 ) -> dict:
     """Update an existing person."""
     try:
-        person_service = get_person_service(request.state.db)
+        person_service = app.services.get_person_service(request.state.db)
         existing_person = await person_service.get_person(person_id)
         if not existing_person:
             raise HTTPException(
@@ -1124,7 +1121,7 @@ async def delete_person(
 ) -> dict:
     """Delete a person."""
     try:
-        person_service = get_person_service(request.state.db)
+        person_service = app.services.get_person_service(request.state.db)
         existing_person = await person_service.get_person(person_id)
         if not existing_person:
             raise HTTPException(
