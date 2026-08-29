@@ -23,7 +23,7 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-    environment: stage
+    environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,7 +47,7 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-    environment: stage
+    environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -71,7 +71,7 @@ jobs:
     defaults:
       run:
         working-directory: frontend
-    environment: stage
+    environment: staging
     env:
       EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
