@@ -49,7 +49,7 @@ jobs:
       - name: Deploy to Netlify (Staging)
         uses: nwtgck/actions-netlify@v3
         with:
-          publish-dir: dist
+          publish-dir: frontend/dist
           production-deploy: true
           deploy-message: 'Staging deploy ${{ github.ref_name }} @ ${{ github.sha }}'
           github-token: ${{ secrets.GITHUB_TOKEN }}
