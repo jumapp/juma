@@ -1,0 +1,69 @@
+services:
+  # Production service — deploys from main/master branch
+  - type: web
+    name: jumapp-api
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+        value: ""  # Set via Render dashboard (secret)
+      - key: DEBUG
+        value: "false"
+      - key: DB_AUTO_CREATE
+        value: "false"
+      - key: AUTH_MODE
+        value: dev
+      - key: SUPER_ADMIN_TOKEN
+        sync: false
+        value: ""  # Set via Render dashboard (secret)
+      - key: CORS_ORIGINS
+        value: https://jumapp.netlify.app
+      - key: REDIS_URL
+        sync: false
+        value: ""  # Phase 2: Upstash Redis URL
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: UPLOAD_URL_PREFIX
+        value: /uploads
+      - key: MAX_UPLOAD_SIZE_BYTES
+        value: "5242880"
+      - key: MAX_PHOTOS_PER_MASJID
+        value: "5"
+
+  # Staging service — deploys from stage branch
+  - type: web
+    name: jumapp-api-staging
+    runtime: docker
+    region: oregon
+    plan: free
+    branch: stage
+    dockerCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+        value: ""  # Set via Render dashboard (secret) — use staging DB
+      - key: DEBUG
+        value: "true"
+      - key: DB_AUTO_CREATE
+        value: "false"
+      - key: AUTH_MODE
+        value: dev
+      - key: SUPER_ADMIN_TOKEN
+        sync: false
+        value: ""  # Set via Render dashboard (secret) — staging token
+      - key: CORS_ORIGINS
+        value: https://jumapp-staging.netlify.app,http://localhost:8081,http://localhost:19006,http://localhost:3000
+      - key: REDIS_URL
+        sync: false
+        value: ""  # Phase 2: Upstash Redis URL (staging)
+      - key: UPLOAD_DIR
+        value: uploads
+      - key: UPLOAD_URL_PREFIX
+        value: /uploads
+      - key: MAX_UPLOAD_SIZE_BYTES
+        value: "5242880"
+      - key: MAX_PHOTOS_PER_MASJID
+        value: "5"

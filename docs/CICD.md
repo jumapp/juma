@@ -102,6 +102,34 @@ Go to **Settings → Secrets and variables → Actions → New repository secret
 | `APPLE_API_KEY_ID` | Optional App Store submission | ⏳ No |
 | `APPLE_API_ISSUER` | Optional App Store submission | ⏳ No |
 
+### Backend Deployment (Render)
+
+The backend is deployed to Render using `backend/render.yaml` which defines:
+
+- **Production service** (`jumapp-api`) — auto-deploys from `master`/`main` branch
+- **Staging service** (`jumapp-api-staging`) — auto-deploys from `stage` branch
+
+#### Render secrets (set in Render dashboard)
+
+| Secret | Production | Staging |
+|---|---|---|
+| `DATABASE_URL` | Neon production connection string | Neon staging DB connection string |
+| `SUPER_ADMIN_TOKEN` | Production admin token | Staging admin token |
+| `CORS_ORIGINS` | `https://jumapp.netlify.app` | `https://jumapp-staging.netlify.app` |
+| `REDIS_URL` | (Phase 2: Upstash production) | (Phase 2: Upstash staging) |
+
+#### Deploy flow
+
+1. Push to GitHub → Render auto-builds the relevant service
+2. Verify `https://jumapp-api.onrender.com/health` (production) or `https://jumapp-api-staging.onrender.com/health` (staging)
+3. Health checks return `{"status": "ok", "version": "..."}`
+
+#### Cold-start mitigation (Render free tier)
+
+Render free tier suspends after 15 minutes idle. To keep warm:
+- Use [UptimeRobot](https://uptimerobot.com/) free tier → ping `/health` every 5 minutes
+- Or upgrade to Render Starter ($7/mo) for always-on
+
 ### EAS project linking (one-time, local)
 
 The Android/iOS workflows run `eas build` and need the app linked to an EAS project. Run once from `frontend/` and commit the changes:

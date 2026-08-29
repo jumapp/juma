@@ -27,11 +27,19 @@ class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=naming_convention)
 
 
-engine = create_async_engine(
-    settings.database_url,
-    echo=settings.db_echo,
-    pool_pre_ping=True,
-)
+_engine_kwargs: dict = {
+    "echo": settings.db_echo,
+    "pool_pre_ping": True,
+}
+
+if settings.is_production_mode:
+    _engine_kwargs.update({
+        "pool_size": 5,
+        "max_overflow": 10,
+        "pool_timeout": 10,
+    })
+
+engine = create_async_engine(settings.database_url, **_engine_kwargs)
 
 AsyncSessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
