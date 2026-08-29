@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - stage
+  workflow_dispatch:
 
 concurrency:
   group: stage-ci-${{ github.ref }}
@@ -22,6 +23,7 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    environment: stage
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,6 +47,7 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    environment: stage
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,6 +71,10 @@ jobs:
     defaults:
       run:
         working-directory: frontend
+    environment: stage
+    env:
+      EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
