@@ -33,6 +33,7 @@ class Settings(BaseSettings):
 
     # CORS
     cors_origins: list[str] = [
+        "https://jumapp.netlify.app", # Production web app
         "http://localhost:8081",  # Expo web dev server
         "http://localhost:19006",  # Expo web (legacy)
         "http://localhost:3000",  # Common dev server
