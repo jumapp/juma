@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     ]
 
     # Database configuration
-    database_url: str = "postgresql+asyncpg://neondb_owner:npg_6nAtSOylj7Nd@ep-plain-cherry-aenuk3gy-pooler.c-2.us-east-2.aws.neon.tech/neondb?channel_binding=require&sslmode=require"
+    database_url: str = "postgresql+asyncpg://postgres:umar@localhost:5432/jumapp"
     database_url_sqlite: str = "sqlite+aiosqlite:///./test.db"
     database_url_postgres: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/jumapp_test"
 

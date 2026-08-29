@@ -15,6 +15,19 @@
             ],
             "cwd": "${workspaceFolder}\\backend",
             "python": "${workspaceFolder}\\backend\\.venv\\Scripts\\python.exe"
+        },
+        {
+            "name": "Backend FastAPI (Production)",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "app.main:app",
+                "--reload",
+            ],
+            "cwd": "${workspaceFolder}\\backend",
+            "python": "${workspaceFolder}\\backend\\.venv\\Scripts\\python.exe",
+            "envFile": "${workspaceFolder}\\backend\\.env.production"
         }
     ]
 }
