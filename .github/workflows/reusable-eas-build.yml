@@ -1,4 +1,4 @@
-name: Reusable - EAS Build & Submit
+﻿name: Reusable - EAS Build & Submit
 
 on:
   workflow_call:
@@ -17,6 +17,16 @@ on:
         required: false
         type: boolean
         default: false
+      EXPO_PUBLIC_API_URL:
+        description: 'API URL for web builds (EXPO_PUBLIC_API_URL).'
+        required: false
+        type: string
+        default: ''
+      EXPO_PUBLIC_API_URL_MOBILE:
+        description: 'API URL for mobile builds (EXPO_PUBLIC_API_URL_MOBILE).'
+        required: false
+        type: string
+        default: ''
     secrets:
       EXPO_TOKEN:
         description: 'Expo access token for EAS authentication.'
@@ -62,6 +72,8 @@ jobs:
         run: npx eas-cli@latest build -p ${{ inputs.platform }} --profile ${{ inputs.profile }} --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_PUBLIC_API_URL: ${{ inputs.EXPO_PUBLIC_API_URL }}
+          EXPO_PUBLIC_API_URL_MOBILE: ${{ inputs.EXPO_PUBLIC_API_URL_MOBILE }}
 
       - name: Submit ${{ inputs.platform }} to store (EAS)
         if: inputs.submit == true

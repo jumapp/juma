@@ -1,4 +1,4 @@
-{
+﻿{
   "cli": {
     "appVersionSource": "remote"
   },
@@ -9,6 +9,10 @@
     },
     "preview": {
       "distribution": "internal"
+    },
+    "staging": {
+      "distribution": "internal",
+      "channel": "staging"
     },
     "production": {
       "autoIncrement": true
