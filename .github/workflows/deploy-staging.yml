@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: dist
+          path: frontend/dist
 
       - name: Deploy to Netlify (Staging)
         uses: nwtgck/actions-netlify@v3
@@ -61,22 +61,26 @@ jobs:
     name: Build Android (Staging via EAS)
     runs-on: ubuntu-latest
     environment: staging
-    steps:
-      - uses: ./.github/workflows/reusable-eas-build.yml
-        with:
-          platform: android
-          profile: staging
-          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-          EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
+    if: ${{ vars.BUILD_ANDROID == 'true' }}
+    uses: ./.github/workflows/reusable-eas-build.yml
+    with:
+      platform: android
+      profile: staging
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
   deploy-ios:
     name: Build iOS (Staging via EAS)
     runs-on: ubuntu-latest
     environment: staging
-    steps:
-      - uses: ./.github/workflows/reusable-eas-build.yml
-        with:
-          platform: ios
-          profile: staging
-          EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
-          EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
+    if: ${{ vars.BUILD_IOS == 'true' }}
+    uses: ./.github/workflows/reusable-eas-build.yml
+    with:
+      platform: ios
+      profile: staging
+      EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
+    secrets:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
