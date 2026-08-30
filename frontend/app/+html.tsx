@@ -35,6 +35,12 @@ export default function Root({ children }: PropsWithChildren) {
         <meta name="apple-mobile-web-app-title" content="Jumapp" />
         <meta name="mobile-web-app-capable" content="yes" />
 
+        {/* Leaflet CSS for Web/PWA */}
+        <link
+          rel="stylesheet"
+          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        />
+
         {/* Service Worker Registration */}
         <script
           dangerouslySetInnerHTML={{
