@@ -59,7 +59,6 @@ jobs:
 
   deploy-android:
     name: Build Android (Staging via EAS)
-    environment: staging
     if: ${{ vars.BUILD_ANDROID == 'true' }}
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
@@ -67,12 +66,10 @@ jobs:
       profile: staging
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
       EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
-    secrets:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    secrets: inherit
 
   deploy-ios:
     name: Build iOS (Staging via EAS)
-    environment: staging
     if: ${{ vars.BUILD_IOS == 'true' }}
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
@@ -80,5 +77,4 @@ jobs:
       profile: staging
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
       EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
-    secrets:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    secrets: inherit
