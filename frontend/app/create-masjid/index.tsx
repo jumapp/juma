@@ -1,17 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, StyleSheet, TextInput as RNTextInput, ScrollView, Pressable } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
+import { MapLeaflet, MapLeafletRef } from '@/components/maps/MapLeaflet';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Header } from '@/components/ui/header';
+import { Screen } from '@/components/ui/screen';
+import { Text } from '@/components/ui/text';
+import { useMasjids } from '@/hooks/queries/use-masjids';
 import { useUserLocation } from '@/hooks/use-user-location';
 import { createMasjid as createMasjidApi } from '@/services/api/masjids';
 import { useQueryClient } from '@tanstack/react-query';
-import { MapLeaflet, MapLeafletRef } from '@/components/maps/MapLeaflet';
-import { useMasjids } from '@/hooks/queries/use-masjids';
-import { Header } from '@/components/ui/header';
-import { Button } from '@/components/ui/button';
-import { Screen } from '@/components/ui/screen';
-import { Card } from '@/components/ui/card';
-import { Text } from '@/components/ui/text';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Pressable, TextInput as RNTextInput, ScrollView, StyleSheet, View } from 'react-native';
 
 type Step = 'location' | 'details';
 
@@ -42,7 +42,12 @@ export default function CreateMasjidScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { location: userLocation } = useUserLocation();
-  const { data: masjids } = useMasjids({ radius: 50000 });
+  
+  const { data: masjids } = useMasjids({
+    lat: userLocation?.latitude,
+    lon: userLocation?.longitude,
+    radius: 50000,
+  });
 
   useEffect(() => {
     if (userLocation && !selectedLocation) {

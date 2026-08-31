@@ -1,15 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
-import { StyleSheet, View } from "react-native";
-import { useRouter } from "expo-router";
-import { useTranslation } from "react-i18next";
+import { MapLeaflet, MapLeafletRef } from "@/components/maps/MapLeaflet";
+import { Badge, Card, EmptyState, IconButton, ListItem, Screen, Skeleton, Text } from "@/components/ui";
+import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useMasjids } from "@/hooks/queries/use-masjids";
 import { useUserLocation } from "@/hooks/use-user-location";
-import { MapLeaflet, MapLeafletRef } from "@/components/maps/MapLeaflet";
-import { useTheme } from "@/providers/theme-provider";
-import { Screen, Text, Card, ListItem, Skeleton, EmptyState, Badge, IconButton } from "@/components/ui";
-import { IconSymbol } from "@/components/ui/icon-symbol";
 import { config } from "@/lib/config";
+import { useTheme } from "@/providers/theme-provider";
 import { Masjid } from "@/services/api/masjids";
+import { useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { StyleSheet, View } from "react-native";
 
 export default function HomeScreen() {
   const { t } = useTranslation();
@@ -18,13 +18,15 @@ export default function HomeScreen() {
   const mapRef = useRef<MapLeafletRef>(null);
   const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
   
-  // Fetch nearby masjids using default Dehradun coordinates
-  const { data: masjids, isLoading, isError, error, refetch } = useMasjids({
-    radius: config.defaultRadiusMeters,
-  });
-  
   // Get user's location
   const { location: userLocation } = useUserLocation();
+  
+  // Fetch nearby masjids using default Dehradun coordinates
+  const { data: masjids, isLoading, isError, error, refetch } = useMasjids({
+    lat: userLocation?.latitude,
+    lon: userLocation?.longitude,
+    radius: config.defaultRadiusMeters,
+  });
 
   // Update map markers when masjids change
   useEffect(() => {
