@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useState, forwardRef, useImperativeHandle, useCallback } from 'react';
-import { View, StyleSheet, Platform, Text, Pressable } from 'react-native';
-import type { WebViewMessageEvent } from 'react-native-webview';
 import { Masjid } from '@/services/api/masjids';
+import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { WebViewMessageEvent } from 'react-native-webview';
 
 // Import Leaflet CSS for web platform only
 if (Platform.OS === 'web') {
@@ -122,6 +122,7 @@ const WebMap: React.FC<MapLeafletProps> = ({
 }) => {
   const mapInstanceRef = useRef<any>(null);
   const containerRef = useRef<View>(null);
+  const mapDivRef = useRef<HTMLDivElement | null>(null);
   const masjidMarkersRef = useRef<Record<string, any>>({});
   const userMarkerRef = useRef<any>(null);
   const selectionMarkerRef = useRef<any>(null);
@@ -207,8 +208,15 @@ const WebMap: React.FC<MapLeafletProps> = ({
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const L = require('leaflet');
 
-    const mapElement = document.getElementById('web-map');
+    const mapElement = mapDivRef.current;
     if (!mapElement) return;
+
+    // Defensive: strip stale Leaflet init marker. StrictMode / fast-refresh
+    // remount races, or a leftover node from another instance, can leave
+    // this set before our cleanup runs — causes "already initialized".
+    if ((mapElement as any)._leaflet_id) {
+      delete (mapElement as any)._leaflet_id;
+    }
 
     const center = centerOnUserLocationRef.current && userLocationRef.current
       ? [userLocationRef.current.latitude, userLocationRef.current.longitude]
@@ -320,7 +328,7 @@ const WebMap: React.FC<MapLeafletProps> = ({
 
   return (
     <View style={styles.container} ref={containerRef}>
-      <div id="web-map" style={{ width: '100%', height: '100%' }} />
+      <div ref={mapDivRef} style={{ width: '100%', height: '100%' }} />
       
       {showCreateButton && onCreate && (
         <View style={styles.fabButton} pointerEvents="box-none">
@@ -398,7 +406,7 @@ const NativeMap: React.FC<MapLeafletProps> = ({
   </style>
 </head>
 <body>
-  <div id="map"></div>
+  <div id="web-map"></div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     let map;
@@ -408,7 +416,7 @@ const NativeMap: React.FC<MapLeafletProps> = ({
       const initialLat = ${centerLat};
       const initialLng = ${centerLng};
       
-      map = L.map('map', {
+      map = L.map('web-map', {
         center: [initialLat, initialLng],
         zoom: 13,
         preferCanvas: true,
