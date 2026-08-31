@@ -4,6 +4,25 @@ on:
   push:
     branches:
       - stage
+  workflow_dispatch:
+    inputs:
+      build_android:
+        description: 'Build Android'
+        type: boolean
+        default: true
+      build_ios:
+        description: 'Build iOS'
+        type: boolean
+        default: false
+      profile:
+        description: 'EAS build profile (development, preview, staging, production)'
+        type: choice
+        default: 'staging'
+        options:
+          - 'development'
+          - 'preview'
+          - 'staging'
+          - 'production'
 
 concurrency:
   group: staging-deploy-${{ github.ref }}
@@ -58,23 +77,23 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID_STAGING }}
 
   deploy-android:
-    name: Build Android (Staging via EAS)
-    if: ${{ vars.BUILD_ANDROID == 'true' }}
+    name: Build Android (Staging via EAS - ${{ inputs.profile || 'staging' }})
+    if: ${{ vars.BUILD_ANDROID == 'true' || (github.event_name == 'workflow_dispatch' && inputs.build_android == true) }}
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
       platform: android
-      profile: staging
+      profile: ${{ inputs.profile || 'staging' }}
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
       EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
     secrets: inherit
 
   deploy-ios:
-    name: Build iOS (Staging via EAS)
-    if: ${{ vars.BUILD_IOS == 'true' }}
+    name: Build iOS (Staging via EAS - ${{ inputs.profile || 'staging' }})
+    if: ${{ vars.BUILD_IOS == 'true' || (github.event_name == 'workflow_dispatch' && inputs.build_ios == true) }}
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
       platform: ios
-      profile: staging
+      profile: ${{ inputs.profile || 'staging' }}
       EXPO_PUBLIC_API_URL: ${{ vars.EXPO_PUBLIC_API_URL }}
       EXPO_PUBLIC_API_URL_MOBILE: ${{ vars.EXPO_PUBLIC_API_URL_MOBILE }}
     secrets: inherit

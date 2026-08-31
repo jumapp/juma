@@ -4,17 +4,28 @@ on:
   workflow_dispatch:
     inputs:
       profile:
-        description: 'EAS build profile from eas.json.'
+        description: 'EAS build profile'
         type: choice
-        default: 'production'
+        default: 'development'
         options:
           - 'development'
           - 'preview'
+          - 'staging'
           - 'production'
       submit:
         description: 'Submit the build to the Play Store after it completes (requires GOOGLE_SERVICE_ACCOUNT_JSON).'
         type: boolean
         default: false
+      EXPO_PUBLIC_API_URL:
+        description: 'API URL for web (EXPO_PUBLIC_API_URL).'
+        type: string
+        required: false
+        default: ''
+      EXPO_PUBLIC_API_URL_MOBILE:
+        description: 'API URL for mobile (EXPO_PUBLIC_API_URL_MOBILE).'
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       profile:
@@ -27,6 +38,16 @@ on:
         required: false
         type: boolean
         default: false
+      EXPO_PUBLIC_API_URL:
+        description: 'API URL for web (EXPO_PUBLIC_API_URL).'
+        required: false
+        type: string
+        default: ''
+      EXPO_PUBLIC_API_URL_MOBILE:
+        description: 'API URL for mobile (EXPO_PUBLIC_API_URL_MOBILE).'
+        required: false
+        type: string
+        default: ''
 
 concurrency:
   group: android-${{ github.ref }}
@@ -37,10 +58,12 @@ permissions:
 
 jobs:
   build-android:
-    name: Build Android via EAS
+    name: Build Android via EAS (${{ inputs.profile }})
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
       platform: android
       profile: ${{ inputs.profile }}
       submit: ${{ inputs.submit == true || inputs.submit == 'true' }}
+      EXPO_PUBLIC_API_URL: ${{ inputs.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_API_URL_MOBILE: ${{ inputs.EXPO_PUBLIC_API_URL_MOBILE }}
     secrets: inherit

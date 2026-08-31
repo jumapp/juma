@@ -4,21 +4,32 @@ on:
   workflow_dispatch:
     inputs:
       skip_ios:
-        description: 'Skip the iOS build (keep true until Apple credentials are configured).'
+        description: 'Skip the iOS build (set to false to build).'
         type: boolean
         default: true
       profile:
-        description: 'EAS build profile from eas.json.'
+        description: 'EAS build profile'
         type: choice
-        default: 'production'
+        default: 'development'
         options:
           - 'development'
           - 'preview'
+          - 'staging'
           - 'production'
       submit:
         description: 'Submit the build to the App Store after it completes (requires App Store Connect API key).'
         type: boolean
         default: false
+      EXPO_PUBLIC_API_URL:
+        description: 'API URL for web (EXPO_PUBLIC_API_URL).'
+        type: string
+        required: false
+        default: ''
+      EXPO_PUBLIC_API_URL_MOBILE:
+        description: 'API URL for mobile (EXPO_PUBLIC_API_URL_MOBILE).'
+        type: string
+        required: false
+        default: ''
   workflow_call:
     inputs:
       skip_ios:
@@ -36,6 +47,16 @@ on:
         required: false
         type: boolean
         default: false
+      EXPO_PUBLIC_API_URL:
+        description: 'API URL for web (EXPO_PUBLIC_API_URL).'
+        required: false
+        type: string
+        default: ''
+      EXPO_PUBLIC_API_URL_MOBILE:
+        description: 'API URL for mobile (EXPO_PUBLIC_API_URL_MOBILE).'
+        required: false
+        type: string
+        default: ''
 
 concurrency:
   group: ios-${{ github.ref }}
@@ -58,11 +79,13 @@ jobs:
           fi
 
   build-ios:
-    name: Build iOS via EAS
+    name: Build iOS via EAS (${{ inputs.profile }})
     if: inputs.skip_ios != 'true' && inputs.skip_ios != true
     uses: ./.github/workflows/reusable-eas-build.yml
     with:
       platform: ios
       profile: ${{ inputs.profile }}
       submit: ${{ inputs.submit == true || inputs.submit == 'true' }}
+      EXPO_PUBLIC_API_URL: ${{ inputs.EXPO_PUBLIC_API_URL }}
+      EXPO_PUBLIC_API_URL_MOBILE: ${{ inputs.EXPO_PUBLIC_API_URL_MOBILE }}
     secrets: inherit
