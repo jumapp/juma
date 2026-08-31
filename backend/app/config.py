@@ -1,5 +1,6 @@
 # App configuration using pydantic-settings.
 
+import sys
 from enum import Enum
 
 from pydantic import field_validator
@@ -129,10 +130,15 @@ class Settings(BaseSettings):
         return "gcs" if self.gcs_bucket else "local"
 
 
-# Load test configuration at module import
+# Load test configuration at module import.
+# IMPORTANT: only flag a test environment when actually running under pytest.
+# Previously this unconditionally set is_test_environment=True, so a normal
+# dev/prod server run was handed an AsyncMock DB session by main.py's middleware,
+# causing: AttributeError: 'coroutine' object has no attribute 'scalars'.
+_running_tests = 'pytest' in sys.modules
 try:
     _test_config = get_test_config()
-    settings = Settings(test_mode=_test_config.test_mode, is_test_environment=True)
+    settings = Settings(test_mode=_test_config.test_mode, is_test_environment=_running_tests)
 except Exception:
     settings = Settings()
 

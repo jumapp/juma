@@ -123,7 +123,7 @@ class MasjidRepository(BaseRepository):
     ) -> List[Masjid]:
         """Get masjids within a radius of the given coordinates."""
         # Construct the point using GeoAlchemy functions
-        point = func.ST_MakePoint(float(lon), float(lat)).srid = 4326
+        point = func.ST_MakePoint(float(lon), float(lat))
         query = select(Masjid).where(
             func.ST_DWithin(
                 Masjid.location,
@@ -163,7 +163,8 @@ class MasjidRepository(BaseRepository):
             conditions.append(Masjid.accessible_by_public_transport == accessible_by_transport)
         
         if lat and lon and radius:
-            point = func.ST_MakePoint(float(lon), float(lat)).srid = 4326
+            point = func.ST_MakePoint(float(lon), float(lat))
+            # point = func.ST_SetSRID(point, 4326)
             conditions.append(
                 func.ST_DWithin(Masjid.location, point, radius)
             )
