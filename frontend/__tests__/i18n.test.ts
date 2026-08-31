@@ -42,6 +42,6 @@ describe("i18n Localization", () => {
   it("translates common keys into Urdu", async () => {
     await changeLanguage("ur");
     expect(i18n.t("common.ok")).toBe("ٹھیک ہے");
-    expect(i18n.t("home.title")).toBe("دون جمعہ");
+    expect(i18n.t("home.title")).toBe("دُون جُمعہ");
   });
 });
