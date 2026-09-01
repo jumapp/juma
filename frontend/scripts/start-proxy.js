@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Path to .env file
-const envPath = path.join(__dirname, '..', '.env');
+const envPath = path.join(__dirname, '..', '.env.local');
 
 // Read current .env content
 let envContent = '';

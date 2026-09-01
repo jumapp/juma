@@ -4,30 +4,39 @@
   "private": true,
   "description": "Jumapp monorepo - Expo React Native frontend + FastAPI backend",
   "scripts": {
-    "frontend": "npm --prefix frontend start",
+    "prepare" : "npm --prefix frontend install && npm run backend:install",
+    "proxy": "npm --prefix frontend run start:proxy",
+    "start":  "npm --prefix frontend start",
+    "frontend:lint": "npm --prefix frontend run lint",
+    "frontend:web": "npm --prefix frontend run web",
+    "frontend:build:web": "npm --prefix frontend run build:web",
+    
     "frontend:android": "npm --prefix frontend run android",
     "frontend:android:build:dev": "npm --prefix frontend run android:build:dev",
     "frontend:android:build:preview": "npm --prefix frontend run android:build:preview",
     "frontend:android:build:staging": "npm --prefix frontend run android:build:staging",
     "frontend:android:build:production": "npm --prefix frontend run android:build:production",
     "frontend:android:build": "npm --prefix frontend run android:build",
+    
     "frontend:ios": "npm --prefix frontend run ios",
-    "frontend:web": "npm --prefix frontend run web",
-    "frontend:lint": "npm --prefix frontend run lint",
-    "frontend:build:web": "npm --prefix frontend run build:web",
+    
     "frontend:deploy:android": "gh workflow run deploy-android.yml --ref master",
     "frontend:deploy:ios": "gh workflow run deploy-ios.yml --ref master -f skip_ios=false",
     "frontend:deploy:pwa": "gh workflow run deploy-pwa.yml --ref master",
     "frontend:deploy:all": "gh workflow run release.yml --ref master",
+
     "backend": "cd backend && uvicorn app.main:app --reload",
     "backend:install": "cd backend && pip install -r requirements.txt",
+    "backend:lint": "cd backend && python -m flake8 --select=F401 --max-line-length=120 app/",
+
     "backend:quality:imports": "cd backend && python -m autoflake --recursive --in-place --remove-unused-variables app/",
     "backend:quality:check": "cd backend && python -m autoflake --check --recursive --remove-unused-variables app/",
-    "backend:lint": "cd backend && python -m flake8 --select=F401 --max-line-length=120 app/",
     "backend:typecheck": "cd backend && python -m vulture app/ --min-confidence=50",
     "backend:quality": "cd backend && python -m autoflake --check --recursive --remove-unused-variables app/ && python -m autoflake --recursive --in-place --remove-unused-variables app/ && python -m flake8 --select=F401 --max-line-length=120 app/ && python -m vulture app/ --min-confidence=50",
+
     "typecheck": "npm --prefix frontend run typecheck",
     "test": "npm --prefix frontend run test",
+
     "release:patch": "npm version patch && git push --follow-tags",
     "release:minor": "npm version minor && git push --follow-tags",
     "release:major": "npm version major && git push --follow-tags"
