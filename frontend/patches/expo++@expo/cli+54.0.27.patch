@@ -1,0 +1,13 @@
+diff --git a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/metroErrorInterface.js b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/metroErrorInterface.js
+index 0000000000000000000000000000000000000000..0000000000000000000000000000000000000000 100644
+--- a/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/metroErrorInterface.js
++++ b/node_modules/expo/node_modules/@expo/cli/build/src/start/server/metro/metroErrorInterface.js
+@@ -345,7 +345,7 @@
+     };
+     // Escape `<` so error contents like `</script>` cannot break out of the embedded JSON block.
+     const serializedLogBox = JSON.stringify(logBoxContext).replace(/</g, '\\u003c');
+-    const html = `<html><head><style>#root,body,html{height:100%}body{overflow:hidden}#root{display:flex}</style></head><body><div id="root"></div><script id="_expo-static-error" type="application/json">${JSON.stringify(serializedLogBox)}</script></body></html>`;
++    const html = `<html><head><style>#root,body,html{height:100%}body{overflow:hidden}#root{display:flex}</style></head><body><div id="root"></div><script id="_expo-static-error" type="application/json">${serializedLogBox}</script></body></html>`;
+     const errorOverlayEntry = await (0, _getStaticRenderFunctions.createMetroEndpointAsync)(projectRoot, // Keep the URL relative
+     '', (0, _resolvefrom().default)(projectRoot, 'expo-router/_error'), {
+         mode: 'development',
