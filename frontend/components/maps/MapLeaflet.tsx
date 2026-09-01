@@ -1,6 +1,6 @@
 import { Masjid } from '@/services/api/masjids';
 import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text as RNText, View } from 'react-native';
 import type { WebViewMessageEvent } from 'react-native-webview';
 
 // Import Leaflet CSS for web platform only
@@ -333,7 +333,7 @@ const WebMap: React.FC<MapLeafletProps> = ({
       {showCreateButton && onCreate && (
         <View style={styles.fabButton} pointerEvents="box-none">
           <Pressable onPress={onCreate} style={styles.fabContent}>
-            <Text style={styles.fabText}>+</Text>
+            <RNText style={styles.fabText}>+</RNText>
           </Pressable>
         </View>
       )}
@@ -576,7 +576,7 @@ const NativeMap: React.FC<MapLeafletProps> = ({
       {showCreateButton && onCreate && (
         <View style={styles.fabButton} pointerEvents="box-none">
           <Pressable onPress={onCreate} style={styles.fabContent}>
-            <Text style={styles.fabText}>+</Text>
+            <RNText style={styles.fabText}>+</RNText>
           </Pressable>
         </View>
       )}
