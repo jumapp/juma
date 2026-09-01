@@ -6,6 +6,11 @@
   "scripts": {
     "frontend": "npm --prefix frontend start",
     "frontend:android": "npm --prefix frontend run android",
+    "frontend:android:build:dev": "npm --prefix frontend run android:build:dev",
+    "frontend:android:build:preview": "npm --prefix frontend run android:build:preview",
+    "frontend:android:build:staging": "npm --prefix frontend run android:build:staging",
+    "frontend:android:build:production": "npm --prefix frontend run android:build:production",
+    "frontend:android:build": "npm --prefix frontend run android:build",
     "frontend:ios": "npm --prefix frontend run ios",
     "frontend:web": "npm --prefix frontend run web",
     "frontend:lint": "npm --prefix frontend run lint",
